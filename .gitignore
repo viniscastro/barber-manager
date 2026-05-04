@@ -24,3 +24,7 @@ Thumbs.db
 node_modules/
 dist/
 .cache/
+
+# Ignora a pasta onde as bibliotecas foram instaladas
+venv/
+env/
