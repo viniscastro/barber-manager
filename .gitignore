@@ -1,0 +1,26 @@
+# Python (Ambiente Virtual e Cache)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+.env
+
+# Banco de Dados e Logs
+*.log
+*.sql
+*.sqlite
+
+# IDEs (VS Code, Antigravity)
+.vscode/
+.antigravity/
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Frontend
+node_modules/
+dist/
+.cache/

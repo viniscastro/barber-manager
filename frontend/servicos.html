@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dom Barbershop | Serviços</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <nav class="sidebar">
+        <a href="index.html" class="logo-link">
+            <div class="logo">
+                <h2 class="shop-name">💈Dom Barbershop</h2>
+                <span class="system-name">Barber Manager</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">🏠 Início</a></li>
+            <li><a href="dashboard.html">📊 Dashboard</a></li>
+            <li><a href="agenda.html">📅 Agenda</a></li>
+            <li><a href="clientes.html">👥 Clientes</a></li>
+            <li><a href="servicos.html" class="active">✂️ Serviços</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-header">
+            <h1 id="page-title">Serviços</h1>
+            <div class="user-profile">
+                <span>Bem-vindo, Cassiano</span>
+            </div>
+        </header>
+
+        <section id="servicos-page" class="active-page">
+            <div class="card-lista">
+                <div class="agenda-top-bar">
+                    <h2>✂️ Gestão de Serviços</h2>
+                    <button class="btn-toggle">+ Adicionar Serviço</button>
+                </div>
+
+                <div class="grid-servicos" id="grid-servicos-container">
+                    </div>
+            </div>
+        </section>
+
+        <!-- MODAL 1: Adicionar / Editar Serviço -->
+        <div id="modal-servico" class="modal-overlay">
+            <div class="modal-content">
+                <h3 id="modal-title">Adicionar Novo Serviço</h3>
+                
+                <div class="input-group">
+                    <input type="text" id="input-nome-servico" placeholder="Nome do Serviço (Ex: Platinado)">
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="input-preco-servico" placeholder="Preço (Ex: R$ 80,00)">
+                </div>
+
+                <div class="modal-actions">
+                    <button id="btn-cancelar-modal" class="btn-cancelar">Cancelar</button>
+                    <button id="btn-salvar-modal" class="btn-submit">Salvar</button>
+                </div>
+            </div>
+        </div>
+        <!-- FIM DO MODAL 1 -->
+
+        <!-- MODAL 2: Confirmação de Exclusão (AGORA SEPARADO!) -->
+        <div id="modal-confirmacao" class="modal-overlay">
+            <div class="modal-content">
+                <h3>Excluir Serviço?</h3>
+                <p style="color: var(--text-muted); margin-bottom: 25px; text-align: center;">
+                    Tem certeza que deseja remover este serviço? Esta ação não pode ser desfeita.
+                </p>
+
+                <div class="modal-actions">
+                    <button id="btn-cancelar-exclusao" class="btn-cancelar">Cancelar</button>
+                    <!-- Usamos a cor de perigo para o botão de confirmação -->
+                    <button id="btn-confirmar-exclusao" class="btn-submit" style="background-color: var(--danger-color); color: #fff;">Remover</button>
+                </div>
+            </div>
+        </div>
+        <!-- FIM DO MODAL 2 -->
+
+    </main>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
