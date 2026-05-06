@@ -1,19 +1,78 @@
 version: '3.8'
 
+name: barber-manager
 services:
-  db:
+  db_servicos:
     image: postgres:15-alpine
-    container_name: barber_postgres
+    container_name: db_servicos
     restart: always
     environment:
-      environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: db_servicos
+    ports:
+      - "5432:5432"
+    volumes:
+      - servicos_data:/var/lib/postgresql/data
+
+  servicos-api:
+    build: ./backend/servicos
+    container_name: servicos_api
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db_servicos
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-user}:${DB_PASSWORD:-password}@db_servicos:5432/db_servicos
+  db_clientes:
+    image: postgres:15-alpine
+    container_name: db_clientes
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: db_clientes
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - clientes_data:/var/lib/postgresql/data
+
+  clientes-api:
+    build: ./backend/clientes
+    container_name: clientes_api
+    restart: always
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db_clientes
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-user}:${DB_PASSWORD:-password}@db_clientes:5432/db_clientes
+  db_agendamentos:
+    image: postgres:15-alpine
+    container_name: db_agendamentos
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: db_agendamentos
+    ports:
+      - "5434:5432"
+    volumes:
+      - agendamentos_data:/var/lib/postgresql/data
+
+  agendamentos-api:
+    build: ./backend/agendamentos
+    container_name: agendamentos_api
+    restart: always
+    ports:
+      - "8002:8000"
+    depends_on:
+      - db_agendamentos
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER:-user}:${DB_PASSWORD:-password}@db_agendamentos:5432/db_agendamentos
 
 volumes:
-  postgres_data:
+  servicos_data:
+  clientes_data:
+  agendamentos_data:
