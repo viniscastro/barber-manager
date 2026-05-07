@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
     <nav class="sidebar">
         <a href="index.html" class="logo-link">
             <div class="logo">
@@ -16,7 +15,6 @@
                 <span class="system-name">Barber Manager</span>
             </div>
         </a>
-        
         <ul class="nav-links">
             <li><a href="index.html">🏠 Início</a></li>
             <li><a href="dashboard.html" class="active">📊 Dashboard</a></li>
@@ -29,20 +27,22 @@
     <main class="main-content">
         <header class="top-header">
             <h1 id="page-title">Visão Geral do Dia</h1>
-            <div class="user-profile">
-                <span>Bem-vindo, Cassiano</span>
-            </div>
+            <div class="user-profile"><span>Bem-vindo, Cassiano</span></div>
         </header>
 
         <section id="dashboard-page" class="active-page">
-            <section class="dashboard-cards">
+            <section class="dashboard-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div class="card">
-                    <h3>Cortes Hoje</h3>
-                    <p class="number">12</p>
+                    <h3>Cortes Agendados</h3>
+                    <p class="number">0</p>
                 </div>
                 <div class="card">
                     <h3>Próximo Cliente</h3>
-                    <p class="next-client">Vinícius (14:30)</p>
+                    <p class="next-client">Agenda Livre</p>
+                </div>
+                <div class="card">
+                    <h3>Faturamento Hoje</h3>
+                    <p class="number" id="faturamento-hoje" style="color: var(--success-color);">R$ 0,00</p>
                 </div>
             </section>
 
@@ -53,14 +53,15 @@
                 </div>
 
                 <form id="agendamento-form">
-                    <div class="input-group">
-                        <label for="nome">Nome do Cliente</label>
-                        <input type="text" id="nome" name="nome" placeholder="Ex: Vinícius" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="telefone">Telefone (WhatsApp)</label>
-                        <input type="tel" id="telefone" name="telefone" placeholder="(81) 90000-0000" required>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="nome">Nome do Cliente</label>
+                            <input type="text" id="nome" name="nome" placeholder="Ex: Vinícius" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="telefone">Telefone (WhatsApp)</label>
+                            <input type="tel" id="telefone" name="telefone" placeholder="(81) 90000-0000" required>
+                        </div>
                     </div>
 
                     <div class="form-row">
@@ -68,21 +69,28 @@
                             <label for="servico">Serviço</label>
                             <select id="servico" name="servico" required>
                                 <option value="" disabled selected>Escolha o serviço...</option>
-                                <!-- O JavaScript vai inserir as opções aqui dinamicamente -->
                             </select>
                         </div>
                         <div class="input-group">
-                            <label for="data-hora">Data e Horário</label>
-                            <input type="text" id="data-hora" name="data-hora" placeholder="Selecione o horário..." required>
+                            <label for="profissional">Profissional</label>
+                            <select id="profissional" name="profissional" required>
+                                <option value="" disabled selected>Escolha o barbeiro...</option>
+                                <option value="Cassiano">Cassiano</option>
+                                <option value="João">João</option>
+                                <option value="Pedro">Pedro</option>
+                            </select>
                         </div>
                     </div>
 
+                    <div class="input-group" style="width: 50%;">
+                        <label for="data-hora">Data e Horário</label>
+                        <input type="text" id="data-hora" name="data-hora" placeholder="Selecione o horário..." required>
+                    </div>
                     <button type="submit" class="btn-submit">Confirmar Agendamento</button>
                 </form>
             </section>
         </section>
     </main>
-
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
     <script src="js/main.js"></script>

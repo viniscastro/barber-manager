@@ -1,6 +1,5 @@
-/* =========================================
-TEMA: PREMIUM / VINTAGE (Escuro e Elegante)
-   ========================================= */
+/* VARIÁVEIS */
+
 :root {
     --primary-color: #d4af37;       /* Dourado */
     --secondary-color: #1a1a1a;     /* Preto secundário */
@@ -13,9 +12,7 @@ TEMA: PREMIUM / VINTAGE (Escuro e Elegante)
     --border-color: #333333;        /* Cor das linhas divisórias */
 }
 
-/* =========================================
-RESET E CONFIGURAÇÕES GLOBAIS
-   ========================================= */
+/* RESET E CONFIGURAÇÕES GLOBAIS */
 * {
     margin: 0;
     padding: 0;
@@ -30,9 +27,7 @@ body {
     min-height: 100vh;
 }
 
-/* =========================================
-SIDEBAR (MENU LATERAL)
-   ========================================= */
+/* MENU LATERAL */
 .sidebar {
     width: 250px;
     background-color: var(--sidebar-bg);
@@ -41,13 +36,12 @@ SIDEBAR (MENU LATERAL)
     display: flex;
     flex-direction: column;
 
-    /* Novas propriedades para fixar o menu */
-    position: fixed;      /* Fixa o elemento na tela */
-    height: 100vh;        /* Garante que ocupe toda a altura da janela */
+    position: fixed;
+    height: 100vh;
     left: 0;
     top: 0;
-    z-index: 1000;        /* Garante que fique acima de outros elementos */
-    overflow-y: auto;     /* Adiciona scroll interno se houver muitos links */
+    z-index: 1000;
+    overflow-y: auto;
 }
 
 .logo h2 {
@@ -82,11 +76,9 @@ SIDEBAR (MENU LATERAL)
     font-weight: bold;
 }
 
-/* =========================================
-ÁREA PRINCIPAL (MAIN CONTENT)
-   ========================================= */
+/* ÁREA PRINCIPAL */
 .main-content {
-    flex: 1; /* Ocupa todo o resto da tela */
+    flex: 1;
     padding: 40px;
     display: flex;
     flex-direction: column;
@@ -117,12 +109,9 @@ SIDEBAR (MENU LATERAL)
     font-weight: bold;
 }
 
-/* =========================================
-CARDS DO DASHBOARD (CSS GRID)
-   ========================================= */
+/* CARDS DO DASHBOARD */
 .dashboard-cards {
     display: grid;
-    /* Isso faz a responsividade mágica: cria colunas de no mínimo 250px */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
 }
@@ -137,7 +126,7 @@ CARDS DO DASHBOARD (CSS GRID)
 }
 
 .card:hover {
-    transform: translateY(-5px); /* Efeito de flutuar ao passar o mouse */
+    transform: translateY(-5px);
     border-color: var(--primary-color);
 }
 
@@ -159,9 +148,7 @@ CARDS DO DASHBOARD (CSS GRID)
     color: var(--text-color);
 }
 
-/* =========================================
-ESTILIZAÇÃO DA LOGO E NOME DA BARBEARIA
-   ========================================= */
+/* ESTILIZAÇÃO DA LOGO E NOME DA BARBEARIA */
 .logo {
     display: flex;
     flex-direction: column;
@@ -184,18 +171,16 @@ ESTILIZAÇÃO DA LOGO E NOME DA BARBEARIA
     letter-spacing: 2px;
 }
 
-/* =========================================
-   FORMULÁRIO DE NOVO AGENDAMENTO
-   ========================================= */
+/* FORMULÁRIO DE NOVO AGENDAMENTO */
 
 /* Container Principal do Formulário */
 .form-container {
-    background-color: var(--sidebar-bg); /* Usa o mesmo fundo dos cards para coerência */
+    background-color: var(--sidebar-bg);
     padding: 35px 40px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Sombra um pouco mais forte para destacar */
-    max-width: 800px; /* Evita que o formulário estique na tela inteira */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    max-width: 800px;
     margin-top: 10px;
 }
 
@@ -224,7 +209,7 @@ ESTILIZAÇÃO DA LOGO E NOME DA BARBEARIA
 }
 
 .form-row .input-group {
-    flex: 1; /* Faz com que os campos na mesma linha dividam o espaço meio a meio */
+    flex: 1;
 }
 
 /* Grupos de Inputs (Label + Campo) */
@@ -246,7 +231,7 @@ ESTILIZAÇÃO DA LOGO E NOME DA BARBEARIA
 /* Estilização dos Campos de Digitação e Seleção */
 .input-group input,
 .input-group select {
-    background-color: var(--bg-body); /* Fundo mais escuro que o container cria "profundidade" */
+    background-color: var(--bg-body);
     color: var(--text-color);
     border: 1px solid var(--border-color);
     padding: 14px 15px;
@@ -256,14 +241,13 @@ ESTILIZAÇÃO DA LOGO E NOME DA BARBEARIA
     transition: all 0.3s ease;
 }
 
-/* O "Pulo do Gato": Efeito quando o usuário clica no campo */
 .input-group input:focus,
 .input-group select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); /* Uma aura dourada sutil */
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
 }
 
-/* Truque Avançado: Inverter a cor do ícone do calendário para aparecer no tema escuro */
+/* Inverte a cor do ícone do calendário para aparecer no tema escuro */
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;
@@ -275,10 +259,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
 }
 
-/* Botão de Submissão */
+/* Botão de Envio */
 .btn-submit {
     background-color: var(--primary-color);
-    color: var(--secondary-color); /* Texto preto no fundo dourado gera alto contraste */
+    color: var(--secondary-color);
     border: none;
     padding: 16px 30px;
     font-size: 1.1rem;
@@ -298,9 +282,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
 }
 
-/* =========================================
-   CUSTOMIZAÇÃO FLATPICKR - PINTANDO DO ZERO
-   ========================================= */
+/* CUSTOMIZAÇÃO FLATPICKR - PINTANDO DO ZERO */
 
 /* Fundo Principal e Borda */
 .flatpickr-calendar {
@@ -327,13 +309,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     color: var(--text-color) !important;
 }
 
-/* O DIA DE HOJE (borda dourada, texto branco) */
 .flatpickr-day.today {
     border-color: var(--primary-color) !important;
     color: var(--text-color) !important;
 }
 
-/* DIA SELECIONADO E HOVER (Fundo dourado, texto preto) */
 .flatpickr-day.selected,
 .flatpickr-day:hover,
 .flatpickr-day:focus,
@@ -365,26 +345,19 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     background: var(--bg-body) !important;
 }
 
-/* =========================================
-   AJUSTES FINOS: MÊS E ANO
-   ========================================= */
-
-/* 1. Dá um respiro (espaço) entre o seletor de Mês e o de Ano */
+/* MÊS E ANO */
 .flatpickr-current-month .numInputWrapper {
     margin-left: 15px !important; 
 }
 
-/* 2. Pinta a setinha de cima (Ano) de branco */
 .flatpickr-current-month .numInputWrapper span.arrowUp:after {
     border-bottom-color: var(--text-color) !important;
 }
 
-/* 3. Pinta a setinha de baixo (Ano) de branco */
 .flatpickr-current-month .numInputWrapper span.arrowDown:after {
     border-top-color: var(--text-color) !important;
 }
 
-/* BÔNUS: Fica dourado quando passa o mouse por cima das setinhas do ano */
 .flatpickr-current-month .numInputWrapper span.arrowUp:hover:after {
     border-bottom-color: var(--primary-color) !important;
 }
@@ -393,11 +366,8 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     border-top-color: var(--primary-color) !important;
 }
 
-/* =========================================
-AJUSTE DE VISIBILIDADE DOS MESES
-   ========================================= */
+/* VISIBILIDADE DOS MESES */
 
-/* Garante que a lista de meses seja legível (Fundo branco/Texto escuro) */
 .flatpickr-monthDropdown-months {
     background-color: #1e1e1e !important; 
     color: #ffffff !important;
@@ -410,9 +380,7 @@ AJUSTE DE VISIBILIDADE DOS MESES
     color: #000000 !important;
 }
 
-/* =========================================
-   ESTILOS DA AGENDA (TIMELINE E BOTÃO)
-   ========================================= */
+/* ESTILOS DA AGENDA */
 .agenda-top-bar {
     display: flex;
     justify-content: space-between;
@@ -495,13 +463,11 @@ AJUSTE DE VISIBILIDADE DOS MESES
     text-transform: uppercase;
 }
 
-/* =========================================
-LINK DA LOGO (SEM ANIMAÇÕES)
-   ========================================= */
+/* LINK DA LOGO */
 .logo-link {
-    text-decoration: none; /* Remove o sublinhado padrão dos links */
-    display: block; /* Garante que toda a área em volta do texto seja clicável */
-    cursor: pointer; /* Mostra a "mãozinha" do mouse */
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
 }
 
 /* Força o link a não ter nenhum efeito, cor ou movimento ao passar o mouse */
@@ -511,12 +477,10 @@ LINK DA LOGO (SEM ANIMAÇÕES)
     text-decoration: none;
     outline: none;
     background: transparent;
-    transform: none; /* Garante ausência de animações de movimento */
+    transform: none;
 }
 
-/* =========================================
-   TELA INICIAL (APRESENTAÇÃO)
-   ========================================= */
+/* TELA INICIAL */
 .presentation-container {
     display: flex;
     flex-direction: column;
@@ -530,7 +494,7 @@ LINK DA LOGO (SEM ANIMAÇÕES)
     background-color: var(--sidebar-bg);
     padding: 40px;
     border-radius: 12px;
-    border-left: 5px solid var(--primary-color); /* Borda dourada lateral */
+    border-left: 5px solid var(--primary-color);
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -570,9 +534,7 @@ LINK DA LOGO (SEM ANIMAÇÕES)
     color: var(--text-muted);
 }
 
-/* =========================================
-BARRA DE TOPO E PESQUISA (Clientes)
-   ========================================= */
+/* BARRA DE TOPO E PESQUISA (Clientes) */
 .agenda-top-bar {
     display: flex;
     justify-content: space-between;
@@ -580,13 +542,13 @@ BARRA DE TOPO E PESQUISA (Clientes)
     margin-bottom: 25px;
     padding-bottom: 15px;
     border-bottom: 1px solid var(--border-color);
-    flex-wrap: wrap; /* Ajuda se a tela for pequena */
+    flex-wrap: wrap;
     gap: 15px;
 }
 
 .busca-container {
     flex: 1;
-    max-width: 400px; /* Limita a largura da barra */
+    max-width: 400px;
     display: flex;
     justify-content: flex-end;
 }
@@ -594,7 +556,7 @@ BARRA DE TOPO E PESQUISA (Clientes)
 #busca-cliente {
     width: 100%;
     padding: 12px 20px;
-    border-radius: 30px; /* Deixa a barra redondinha e elegante */
+    border-radius: 30px;
     background-color: var(--bg-body);
     border: 1px solid var(--border-color);
     color: var(--text-color);
@@ -612,15 +574,13 @@ BARRA DE TOPO E PESQUISA (Clientes)
     color: var(--text-muted);
 }
 
-/* =========================================
-REGRAS EXCLUSIVAS PARA A TABELA DE CLIENTES (4 Colunas)
-   ========================================= */
+/* REGRAS EXCLUSIVAS PARA A TABELA DE CLIENTES */
 #clientes-page .tabela-estilizada {
     table-layout: fixed; 
     width: 100%;
 }
 
-/* Define a separação uniforme de 25% para cada uma das 4 colunas */
+/* Define a separação das colunas */
 #clientes-page .tabela-estilizada th,
 #clientes-page .tabela-estilizada td {
     width: 25%; 
@@ -628,9 +588,7 @@ REGRAS EXCLUSIVAS PARA A TABELA DE CLIENTES (4 Colunas)
     text-align: left;
 }
 
-/* =========================================
-ESTILOS DA TABELA (Clientes e Agenda)
-   ========================================= */
+/* ESTILOS DA TABELA (Clientes e Agenda) */
 .card-lista {
     background-color: var(--sidebar-bg);
     padding: 30px;
@@ -648,7 +606,7 @@ ESTILOS DA TABELA (Clientes e Agenda)
 
 /* Cabeçalho padrão para TODAS as tabelas */
 .tabela-estilizada th {
-    text-align: left; /* Mantém tudo alinhado à esquerda */
+    text-align: left;
     color: var(--primary-color);
     border-bottom: 2px solid var(--border-color);
     padding: 15px 10px;
@@ -657,47 +615,38 @@ ESTILOS DA TABELA (Clientes e Agenda)
     letter-spacing: 1px;
 }
 
-/* =========================================
-REGRAS EXCLUSIVAS PARA A TABELA DA AGENDA (4 Colunas)
-   ========================================= */
+/* REGRAS EXCLUSIVAS PARA A TABELA DA AGENDA */
 #agenda-table-view .tabela-estilizada {
     table-layout: fixed; 
     width: 100%;
 }
 
-/* Alinhamos TUDO à esquerda e definimos o respiro geral */
 #agenda-table-view .tabela-estilizada th,
 #agenda-table-view .tabela-estilizada td {
-    padding: 15px 15px; /* Reduzi um pouquinho o padding para não empurrar muito */
+    padding: 15px 15px;
     text-align: left; 
 }
 
-/* 1. Coluna: HORA (Reduzido para 10% - Fica bem justinho) */
 #agenda-table-view .tabela-estilizada th:nth-child(1),
 #agenda-table-view .tabela-estilizada td:nth-child(1) {
     width: 30%; 
 }
 
-/* 2. Coluna: CLIENTE (Aumentado para 45% - Fica mais perto da hora e ganha destaque) */
 #agenda-table-view .tabela-estilizada th:nth-child(2),
 #agenda-table-view .tabela-estilizada td:nth-child(2) {
     width: 35%; 
 }
 
-/* 3. Coluna: SERVIÇO (Ocupa 30% do espaço) */
 #agenda-table-view .tabela-estilizada th:nth-child(3),
 #agenda-table-view .tabela-estilizada td:nth-child(3) {
     width: 35%; 
 }
 
-/* 4. Coluna: TEMPO (Ocupa os 15% finais) */
 #agenda-table-view .tabela-estilizada th:nth-child(4),
 #agenda-table-view .tabela-estilizada td:nth-child(4) {
     width: 10%; 
 }
-/* =========================================
-ESTILOS DA GRELHA DE SERVIÇOS
-   ========================================= */
+/* ESTILOS DO GRID DE SERVIÇOS */
 .grid-servicos {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -721,17 +670,15 @@ ESTILOS DA GRELHA DE SERVIÇOS
     border-color: #fff;
 }
 
-/* =========================================
-MODAL CUSTOMIZADO (POP-UP INTERATIVO)
-   ========================================= */
+/* MODAL CUSTOMIZADO (POP-UP INTERATIVO) */
 .modal-overlay {
-    display: none; /* Escondido por defeito */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Fundo desfocado escuro */
+    background-color: rgba(0, 0, 0, 0.8);
     z-index: 9999;
     justify-content: center;
     align-items: center;
@@ -757,7 +704,7 @@ MODAL CUSTOMIZADO (POP-UP INTERATIVO)
 }
 
 .modal-overlay.active .modal-content {
-    transform: scale(1); /* Animação de "pulo" ao abrir */
+    transform: scale(1);
 }
 
 .modal-content h3 {
@@ -771,6 +718,12 @@ MODAL CUSTOMIZADO (POP-UP INTERATIVO)
     display: flex;
     gap: 15px;
     margin-top: 20px;
+}
+
+/* Garante que o botão de remover dentro de modais siga o padrão de altura dos outros */
+.modal-actions .btn-remover-servico {
+    margin-top: 0;
+    font-size: 0.9rem;
 }
 
 .btn-cancelar {
@@ -790,19 +743,16 @@ MODAL CUSTOMIZADO (POP-UP INTERATIVO)
     color: #fff;
 }
 
-/* O botão de Salvar dentro do Pop-up */
+/* Botão de Salvar dentro do Pop-up */
 .modal-actions .btn-submit {
     margin-top: 0; 
     flex: 1;
     
-    /* "Desliga" os estilos do botão gigante do dashboard */
-    padding: 12px; /* Mesmo tamanho do Cancelar */
-    font-size: 1rem; /* Mesmo tamanho do Cancelar */
-    text-transform: none; /* Tira as letras todas maiúsculas */
-    letter-spacing: normal; /* Tira o espaçamento extra das letras */
-    box-shadow: none; /* Tira a sombra */
-    
-    /* Deixa o visual com borda transparente igual ao Cancelar, mas em dourado */
+    padding: 12px;
+    font-size: 1rem;
+    text-transform: none;
+    letter-spacing: normal;
+    box-shadow: none;
     background-color: transparent;
     color: var(--primary-color);
     border: 1px solid var(--primary-color);
@@ -813,19 +763,17 @@ MODAL CUSTOMIZADO (POP-UP INTERATIVO)
 .modal-actions .btn-submit:hover {
     background-color: var(--primary-color);
     color: var(--secondary-color);
-    transform: none; /* Tira o efeito de pulo para ficar elegante como o Cancelar */
+    transform: none;
 }
 
-/* =========================================
-BOTÕES DOS CARTÕES DE SERVIÇO (EDITAR / REMOVER)
-   ========================================= */
+/* BOTÕES DOS CARTÕES DE SERVIÇO (EDITAR / REMOVER) */
 .card-actions {
     display: flex;
     gap: 10px;
     margin-top: 15px;
 }
 
-/* Agrupamos as regras para forçar tamanho idêntico em ambos */
+/* Forçar tamanho idêntico */
 .btn-editar-servico, .btn-remover-servico {
     flex: 1;
     height: 36px; /* Força a altura exata para os dois botões */
@@ -838,7 +786,7 @@ BOTÕES DOS CARTÕES DE SERVIÇO (EDITAR / REMOVER)
     font-weight: bold;
     transition: 0.3s ease;
     
-    /* Centraliza o texto dentro da altura que definimos */
+    /* Centraliza o texto dentro da altura definida */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -865,19 +813,70 @@ BOTÕES DOS CARTÕES DE SERVIÇO (EDITAR / REMOVER)
     color: #fff;
 }
 
-/* =========================================
-BOTÃO DE EXCLUIR AGENDAMENTO (LIXEIRA)
-========================================= */
+/* BOTÃO DE EXCLUIR AGENDAMENTO (LIXEIRA) */
 .btn-delete-icon {
     background: transparent;
     border: none;
     cursor: pointer;
     font-size: 1.3rem;
     transition: transform 0.2s ease, opacity 0.2s ease;
-    opacity: 0.6; /* Fica meio apagado para não chamar muita atenção */
+    opacity: 0.6;
 }
 
 .btn-delete-icon:hover {
-    transform: scale(1.2); /* Cresce ao passar o mouse */
-    opacity: 1; /* Acende a cor */
+    transform: scale(1.2);
+    opacity: 1;
+}
+
+/* NOTIFICAÇÕES FLUTUANTES */
+.toast-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    visibility: hidden;
+    background-color: var(--success-color);
+    color: #ffffff;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+    font-size: 1rem;
+    z-index: 10000; 
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    width: 90%; 
+    max-width: 450px;
+    
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toast-notification.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+.toast-notification.error {
+    background-color: var(--danger-color);
+}
+
+/* BOTÃO FECHAR DA NOTIFICAÇÃO  */
+.toast-close {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 1.8rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+    line-height: 1;
+    padding: 0;
+    margin-left: 10px;
+    margin-top: -2px;
+}
+
+.toast-close:hover {
+    opacity: 1;
 }

@@ -55,6 +55,33 @@
                 </table>
             </div>
         </section>
+
+        <div id="modal-perfil-cliente" class="modal-overlay">
+            <div class="modal-content" style="max-width: 450px;">
+                <h3 id="perfil-nome-cliente">Nome do Cliente</h3>
+                
+                <div style="background: var(--bg-body); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                    <p style="margin-bottom: 10px;">📱 <strong>WhatsApp:</strong> <span id="perfil-telefone" style="color: var(--text-muted);"></span></p>
+                    <p style="margin-bottom: 10px;">📅 <strong>Última Visita:</strong> <span id="perfil-visita" style="color: var(--text-muted);"></span></p>
+                    <p style="margin-bottom: 10px;">✂️ <strong>Serviço Favorito:</strong> <span id="perfil-servico" style="color: var(--text-muted);"></span></p>
+                    <p style="font-size: 1.2rem; margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                        🏆 <strong>Cortes Acumulados:</strong> <span id="perfil-cortes" style="color: var(--primary-color); font-weight: bold;">0</span>
+                    </p>
+                </div>
+
+                <div class="modal-actions" style="flex-direction: column; gap: 10px;">
+                    <button id="btn-resgatar-premio" onclick="zerarCortes()" class="btn-submit" style="background-color: var(--success-color); color: #fff; width: 100%; display: none;">
+                        🎁 Resgatar Prêmio (Zerar Cortes)
+                    </button>
+                    
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <button onclick="fecharPerfilCliente()" class="btn-cancelar" style="flex: 1;">Voltar</button>
+                        <button onclick="excluirCliente()" class="btn-remover-servico" style="flex: 1; height: 45px; border-radius: 8px;">Excluir Cadastro</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script src="js/main.js"></script>

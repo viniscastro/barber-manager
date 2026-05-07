@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
     <nav class="sidebar">
         <a href="index.html" class="logo-link">
             <div class="logo">
@@ -28,23 +27,27 @@
     <main class="main-content">
         <header class="top-header">
             <h1 id="page-title">Agenda</h1>
-            <div class="user-profile">
-                <span>Bem-vindo, Cassiano</span>
-            </div>
+            <div class="user-profile"><span>Bem-vindo, Cassiano</span></div>
         </header>
 
         <section id="agenda-page" class="active-page">
             <div class="card-lista">
-                
                 <div class="agenda-top-bar">
                     <h2>📅 Gestão de Horários</h2>
                     <button id="toggle-agenda-view" class="btn-toggle">Ver Tabela Completa</button>
                 </div>
 
                 <div id="agenda-timeline-view">
-                    <span class="agenda-date">Hoje - 28 de Abril</span>
-                    <div class="timeline" id="daily-timeline">
+                    <div class="agenda-navigation" style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 25px; background: var(--bg-card); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
+                        <button id="btn-prev-day" class="btn-toggle" style="padding: 5px 15px;">⬅️</button>
+                        <div style="text-align: center; cursor: pointer;" id="container-datepicker-agenda">
+                            <span id="display-data-agenda" style="font-weight: bold; font-size: 1.1rem; color: var(--primary-color);">Carregando...</span>
+                            <input type="text" id="datepicker-agenda" style="display: none;">
                         </div>
+                        <button id="btn-next-day" class="btn-toggle" style="padding: 5px 15px;">➡️</button>
+                    </div>
+
+                    <div class="timeline" id="daily-timeline"></div>
                 </div>
 
                 <div id="agenda-table-view" style="display: none;">
@@ -54,33 +57,26 @@
                                 <th>Hora</th>
                                 <th>Cliente</th>
                                 <th>Serviço</th>
-                                <th>Tempo</th>
+                                <th>Detalhes</th>
                             </tr>
                         </thead>
-                        <tbody id="tabela-agenda-body">
-                            </tbody>
+                        <tbody id="tabela-agenda-body"></tbody>
                     </table>
                 </div>
             </div>
         </section>
 
-        <!-- Modal de Confirmação de Exclusão da Agenda (AGORA LIVRE NO FINAL DA MAIN!) -->
         <div id="modal-confirmacao-agenda" class="modal-overlay">
             <div class="modal-content">
                 <h3>Cancelar Agendamento?</h3>
-                <p style="color: var(--text-muted); margin-bottom: 25px; text-align: center;">
-                    Tem certeza que deseja cancelar este horário? Esta ação removerá o cliente da agenda.
-                </p>
-
+                <p style="color: var(--text-muted); margin-bottom: 25px; text-align: center;">Tem certeza que deseja cancelar este horário?</p>
                 <div class="modal-actions">
                     <button id="btn-cancelar-agenda" class="btn-cancelar">Voltar</button>
                     <button id="btn-confirmar-agenda" class="btn-submit" style="background-color: var(--danger-color); color: #fff;">Cancelar</button>
                 </div>
             </div>
         </div>
-
     </main>
-
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
     <script src="js/main.js"></script>
