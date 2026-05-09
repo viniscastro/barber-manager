@@ -1,4 +1,4 @@
-// 1. CALENDÁRIO E NAVEGAÇÃO
+                   //Calendário e navegação
 if (document.getElementById("data-hora")) {
     flatpickr("#data-hora", { enableTime: true, dateFormat: "d/m/Y H:i", minDate: "today", time_24hr: true, locale: "pt", minTime: "08:00", maxTime: "20:00", disable: [function(date) { return (date.getDay() === 0); }] });
 }
@@ -21,7 +21,7 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
-// 2. FUNÇÕES AUXILIARES (Toasts, Horas, WhatsApp)
+           //funções auxiliares
 window.fecharNotificacao = function() {
     const toast = document.getElementById('custom-toast');
     if (toast) { toast.classList.remove('show'); if (toast.hideTimeout) clearTimeout(toast.hideTimeout); }
@@ -57,7 +57,7 @@ function gerarLinkWhatsApp(telefone, mensagem) {
     return `https://wa.me/${numeroLimpo}?text=${encodeURIComponent(mensagem)}`;
 }
 
-// 3. SALVAR AGENDAMENTO E CLIENTE
+          //salver agendamento e cliente
 const formAgendamento = document.getElementById('agendamento-form');
 if (formAgendamento) {
     formAgendamento.addEventListener('submit', function(e) {
@@ -76,7 +76,6 @@ if (formAgendamento) {
         const novoInicioMins = timeToMins(hora);
         const novoFimMins = novoInicioMins + duracaoNovo;
 
-        // FILTRA AGENDA PELO BARBEIRO E DIA
         const ocupadosNoDia = agendamentosSalvos.filter(a => {
             const isMesmoDia = (a.data === data || !a.data);
             const isMesmoProfissional = (a.profissional || 'Cassiano') === profissional;
@@ -95,11 +94,9 @@ if (formAgendamento) {
             return;
         }
 
-        // SALVA NA AGENDA
         agendamentosSalvos.push({ nome, telefone, servico, profissional, data, hora, duracao: duracaoNovo, status: 'pendente' });
         localStorage.setItem('agendamentos_barbearia', JSON.stringify(agendamentosSalvos));
 
-        // SALVA NA BASE DE CLIENTES
         let clientesSalvos = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
         let clienteExistente = clientesSalvos.find(c => c.telefone === telefone);
         if (clienteExistente) {
@@ -116,8 +113,11 @@ if (formAgendamento) {
         setTimeout(() => { window.location.href = "agenda.html"; }, 2000);
     });
 }
+         //agenda integrada ao docker
+const API_AGENDA = "http://localhost:8002/agendamentos/";
+const API_CLIENTES_AGENDA = "http://localhost:8001/clientes/";
+const API_SERVICOS_AGENDA = "http://localhost:8000/servicos/";
 
-// 4. LÓGICA DA AGENDA (Datas, Status e Múltiplos)
 const btnToggleAgenda = document.getElementById('toggle-agenda-view');
 const viewTimeline = document.getElementById('agenda-timeline-view');
 const viewTable = document.getElementById('agenda-table-view');
@@ -127,7 +127,7 @@ const displayData = document.getElementById('display-data-agenda');
 const modalConfirmacaoAgenda = document.getElementById('modal-confirmacao-agenda');
 const btnCancelarAgenda = document.getElementById('btn-cancelar-agenda');
 const btnConfirmarAgenda = document.getElementById('btn-confirmar-agenda');
-let indexAgendaParaRemover = null;
+let idAgendaParaRemover = null;
 let dataSelecionada = new Date();
 
 if (btnToggleAgenda) {
@@ -147,123 +147,111 @@ function formatarDataParaDisplay(date) {
 }
 
 function formatarDataParaFiltro(date) {
-    return String(date.getDate()).padStart(2, '0') + '/' + String(date.getMonth() + 1).padStart(2, '0') + '/' + date.getFullYear();
+    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
 }
 
 if (tabelaAgenda && timeline) {
-    function carregarAgendamentos() {
-        let agendamentos = JSON.parse(localStorage.getItem('agendamentos_barbearia')) || [];
-        let agendamentosComIndex = agendamentos.map((ag, index) => ({ ...ag, indexOriginal: index }));
-        const filtro = formatarDataParaFiltro(dataSelecionada);
-        if (displayData) displayData.innerText = formatarDataParaDisplay(dataSelecionada);
+    window.carregarAgendamentos = async function() {
+        try {
+            const [resAgenda, resClientes, resServicos] = await Promise.all([
+                fetch(API_AGENDA),
+                fetch(API_CLIENTES_AGENDA),
+                fetch(API_SERVICOS_AGENDA)
+            ]);
 
-        let agendamentosDoDia = agendamentosComIndex.filter(a => a.data === filtro);
-        agendamentosDoDia.sort((a, b) => a.hora.localeCompare(b.hora));
+            let agendamentos = await resAgenda.json();
+            let clientes = await resClientes.json();
+            let servicos = await resServicos.json();
+            const filtro = formatarDataParaFiltro(dataSelecionada);
+            if (displayData) displayData.innerText = formatarDataParaDisplay(dataSelecionada);
 
-        tabelaAgenda.innerHTML = ''; timeline.innerHTML = '';
+            let agendamentosDoDia = agendamentos.filter(a => a.data_hora && a.data_hora.startsWith(filtro));
+            agendamentosDoDia.sort((a, b) => a.data_hora.localeCompare(b.data_hora));
+            tabelaAgenda.innerHTML = ''; timeline.innerHTML = '';
 
-        if (agendamentosDoDia.length === 0) {
-            timeline.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">Nenhum agendamento para este dia.</p>';
-            tabelaAgenda.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; font-style: italic; color: var(--text-muted);">Nenhum agendamento para este dia.</td></tr>';
-        } else {
-            agendamentosDoDia.forEach(ag => {
-                const duracao = ag.duracao || 45;
-                const msgLembrete = `Olá ${ag.nome}, passando para confirmar o seu horário às ${ag.hora} para o serviço de ${ag.servico} com ${ag.profissional || 'Cassiano'} na Dom Barbershop!`;
-                const linkWhats = gerarLinkWhatsApp(ag.telefone, msgLembrete);
-                
-                let botoesAcao = ''; let statusText = ''; let borderStyle = ''; let opacityStyle = '';
+            if (agendamentosDoDia.length === 0) {
+                timeline.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">Nenhum agendamento para este dia.</p>';
+                tabelaAgenda.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; font-style: italic; color: var(--text-muted);">Nenhum agendamento para este dia.</td></tr>';
+            } else {
+                agendamentosDoDia.forEach(ag => {
+                    const clienteObj = clientes.find(c => c.id === ag.cliente_id) || { nome: 'Cliente Antigo', telefone: '' };
+                    const servicoObj = servicos.find(s => s.id === ag.servico_id) || { nome: 'Serviço Removido' };
+                    const horaDisplay = ag.data_hora.split('T')[1].substring(0, 5);
+                    const duracao = ag.duracao || 45;
+                    const msgLembrete = `Olá ${clienteObj.nome}, confirmamos seu horário às ${horaDisplay}...`;
+                    const linkWhats = gerarLinkWhatsApp(clienteObj.telefone, msgLembrete);
+                    
+                    let statusText = ''; let borderStyle = ''; let opacityStyle = '';
+                    let statusLower = ag.status ? ag.status.toLowerCase() : 'pendente';
 
-                if (ag.status === 'concluido') {
-                    opacityStyle = 'opacity: 0.7;'; borderStyle = 'border-left: 4px solid var(--success-color);';
-                    statusText = '<span style="color: var(--success-color); font-size: 0.8rem; font-weight: bold; margin-top: 5px; display: inline-block;">✅ CONCLUÍDO</span>';
-                    botoesAcao = `<button onclick="abrirModalExclusaoAgenda(${ag.indexOriginal})" class="btn-delete-icon" title="Excluir Histórico">🗑️</button>`;
-                } else if (ag.status === 'faltou') {
-                    opacityStyle = 'opacity: 0.6;'; borderStyle = 'border-left: 4px solid var(--danger-color);';
-                    statusText = '<span style="color: var(--danger-color); font-size: 0.8rem; font-weight: bold; margin-top: 5px; display: inline-block;">❌ FALTOU</span>';
-                    botoesAcao = `<button onclick="abrirModalExclusaoAgenda(${ag.indexOriginal})" class="btn-delete-icon" title="Excluir Histórico">🗑️</button>`;
-                } else {
-                    botoesAcao = `
-                        <a href="${linkWhats}" target="_blank" style="text-decoration: none; font-size: 1.2rem; transition: 0.3s;" title="Enviar Lembrete">💬</a>
-                        <button onclick="alterarStatusAgendamento(${ag.indexOriginal}, 'concluido')" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;" title="Marcar Concluído">✅</button>
-                        <button onclick="alterarStatusAgendamento(${ag.indexOriginal}, 'faltou')" style="background:none; border:none; cursor:pointer; font-size: 1.2rem;" title="Cliente Faltou">❌</button>
-                        <button onclick="abrirModalExclusaoAgenda(${ag.indexOriginal})" class="btn-delete-icon" title="Cancelar Horário">🗑️</button>
-                    `;
-                }
-                
-                tabelaAgenda.innerHTML += `
-                    <tr style="${opacityStyle}">
-                        <td>${ag.hora}</td>
-                        <td>${ag.nome} <br> ${statusText}</td>
-                        <td>${ag.servico} <br> <small style="color: var(--primary-color); font-weight: bold;">💈 ${ag.profissional || 'Cassiano'}</small></td>
-                        <td>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: var(--text-muted);">${duracao} min</span>
-                                <div style="display: flex; gap: 10px; align-items: center;">${botoesAcao}</div>
-                            </div>
-                        </td>
-                    </tr>`;
-
-                timeline.innerHTML += `
-                    <div class="timeline-slot" style="${opacityStyle}">
-                        <div class="slot-time">${ag.hora}</div>
-                        <div class="slot-content">
+                    if (statusLower === 'concluido') {
+                        opacityStyle = 'opacity: 0.7;'; borderStyle = 'border-left: 4px solid var(--success-color);';
+                        statusText = '<span style="color: var(--success-color); font-weight: bold;">✅ CONCLUÍDO</span>';
+                    } else if (statusLower === 'faltou') {
+                        opacityStyle = 'opacity: 0.6;'; borderStyle = 'border-left: 4px solid var(--danger-color);';
+                        statusText = '<span style="color: var(--danger-color); font-weight: bold;">❌ FALTOU</span>';
+                    }
+                    tabelaAgenda.innerHTML += `
+                        <tr style="${opacityStyle}">
+                            <td>${horaDisplay}</td>
+                            <td>${clienteObj.nome} <br> ${statusText}</td>
+                            <td>${servicoObj.nome}</td>
+                            <td><button onclick="abrirModalExclusaoAgenda(${ag.id})">🗑️</button></td>
+                        </tr>`;
+                    timeline.innerHTML += `
+                        <div class="timeline-slot" style="${opacityStyle}">
+                            <div class="slot-time">${horaDisplay}</div>
                             <div class="appointment-card" style="${borderStyle}">
                                 <div>
-                                    <span class="client-name">${ag.nome}</span>
-                                    <span class="service-tag" style="margin-left: 10px;">${ag.servico}</span>
-                                    <span class="service-tag" style="margin-left: 5px; background: var(--bg-body); color: var(--text-color); border: 1px solid var(--border-color);">💈 ${ag.profissional || 'Cassiano'}</span>
+                                    <span class="client-name">${clienteObj.nome}</span>
+                                    <span class="service-tag">${servicoObj.nome}</span>
                                     <br>${statusText}
                                 </div>
-                                <div style="display: flex; gap: 10px; align-items: center;">${botoesAcao}</div>
+                                <button onclick="abrirModalExclusaoAgenda(${ag.id})">🗑️</button>
                             </div>
-                        </div>
-                    </div>`;
-            });
+                        </div>`;
+                });
+            }
+        } catch (erro) {
+            console.error("Erro ao carregar a Agenda:", erro);
         }
     }
 
-    window.alterarStatusAgendamento = function(index, status) {
-        let agendamentos = JSON.parse(localStorage.getItem('agendamentos_barbearia')) || [];
-        let ag = agendamentos[index];
-        if (!ag) return;
-        ag.status = status;
-        
-        if (status === 'faltou') {
-            let clientes = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
-            let cIndex = clientes.findIndex(c => c.telefone === ag.telefone);
-            if (cIndex !== -1 && clientes[cIndex].cortesTotal > 0) {
-                clientes[cIndex].cortesTotal -= 1;
-                localStorage.setItem('clientes_barbearia', JSON.stringify(clientes));
-            }
+    window.alterarStatusAgendamento = async function(id, status) {
+        try {
+            const res = await fetch(`${API_AGENDA}${id}`);
+            const ag = await res.json();
+            await fetch(`${API_AGENDA}${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...ag, status: status })
+            });
+
+            mostrarNotificacao(`Status alterado: ${status === 'concluido' ? 'Concluído ✅' : 'Faltou ❌'}`, status === 'faltou' ? 'erro' : 'sucesso');
+            carregarAgendamentos();
+        } catch (e) {
+            mostrarNotificacao("Erro ao atualizar status.", "erro");
         }
-        localStorage.setItem('agendamentos_barbearia', JSON.stringify(agendamentos));
-        mostrarNotificacao(`Status alterado: ${status === 'concluido' ? 'Concluído ✅' : 'Faltou ❌'}`, status === 'faltou' ? 'erro' : 'sucesso');
-        carregarAgendamentos();
     };
 
-    window.abrirModalExclusaoAgenda = function(index) { indexAgendaParaRemover = index; modalConfirmacaoAgenda.classList.add('active'); };
-    function fecharModalAgenda() { if (modalConfirmacaoAgenda) { modalConfirmacaoAgenda.classList.remove('active'); indexAgendaParaRemover = null; } }
+    window.abrirModalExclusaoAgenda = function(id) { idAgendaParaRemover = id; modalConfirmacaoAgenda.classList.add('active'); };
+    function fecharModalAgenda() { if (modalConfirmacaoAgenda) { modalConfirmacaoAgenda.classList.remove('active'); idAgendaParaRemover = null; } }
+    
     if (btnCancelarAgenda) btnCancelarAgenda.addEventListener('click', fecharModalAgenda);
+    
     if (btnConfirmarAgenda) {
         const cloneBtn = btnConfirmarAgenda.cloneNode(true);
         btnConfirmarAgenda.parentNode.replaceChild(cloneBtn, btnConfirmarAgenda);
-        cloneBtn.addEventListener('click', function() {
-            if (indexAgendaParaRemover !== null) {
-                let agendamentosSalvos = JSON.parse(localStorage.getItem('agendamentos_barbearia')) || [];
-                let agParaRemover = agendamentosSalvos[indexAgendaParaRemover];
-                
-                if (agParaRemover && (!agParaRemover.status || agParaRemover.status === 'pendente')) {
-                    let clientes = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
-                    let cIndex = clientes.findIndex(c => c.telefone === agParaRemover.telefone);
-                    if (cIndex !== -1 && clientes[cIndex].cortesTotal > 0) {
-                        clientes[cIndex].cortesTotal -= 1;
-                        localStorage.setItem('clientes_barbearia', JSON.stringify(clientes));
-                    }
+        cloneBtn.addEventListener('click', async function() {
+            if (idAgendaParaRemover !== null) {
+                try {
+                    await fetch(`${API_AGENDA}${idAgendaParaRemover}`, { method: 'DELETE' });
+                    carregarAgendamentos();
+                    fecharModalAgenda();
+                    mostrarNotificacao("Horário removido da agenda.");
+                } catch (e) {
+                    mostrarNotificacao("Erro ao deletar do banco.", "erro");
                 }
-                agendamentosSalvos.splice(indexAgendaParaRemover, 1);
-                localStorage.setItem('agendamentos_barbearia', JSON.stringify(agendamentosSalvos));
-                carregarAgendamentos();
-                fecharModalAgenda();
             }
         });
     }
@@ -271,90 +259,144 @@ if (tabelaAgenda && timeline) {
     if (displayData) {
         document.getElementById('btn-prev-day').addEventListener('click', () => { dataSelecionada.setDate(dataSelecionada.getDate() - 1); carregarAgendamentos(); });
         document.getElementById('btn-next-day').addEventListener('click', () => { dataSelecionada.setDate(dataSelecionada.getDate() + 1); carregarAgendamentos(); });
-        const picker = flatpickr("#datepicker-agenda", { locale: "pt", dateFormat: "d/m/Y", disableMobile: "true", onChange: function(selectedDates) { dataSelecionada = selectedDates[0]; carregarAgendamentos(); } });
+        const picker = flatpickr("#datepicker-agenda", { locale: "pt", dateFormat: "Y-m-d", disableMobile: "true", onChange: function(selectedDates) { dataSelecionada = selectedDates[0]; carregarAgendamentos(); } });
         document.getElementById('container-datepicker-agenda').addEventListener('click', () => picker.open());
     }
 
     carregarAgendamentos();
 }
+         //clientes e perfil
+const API_CLIENTES = "http://localhost:8001/clientes/";
 
-// 5. CLIENTES E PERFIL
 const tabelaClientes = document.getElementById('tabela-clientes-body');
 const modalPerfil = document.getElementById('modal-perfil-cliente');
-let telefoneClienteAtivo = null;
+const inputBuscaCliente = document.getElementById('busca-cliente');
+
+let clienteAtivoId = null;
+let listaDeClientes = [];
 
 if (tabelaClientes) {
-    function carregarClientes() {
-        let clientes = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
+    window.carregarClientes = async function() {
+        try {
+            const resposta = await fetch(API_CLIENTES);
+            if (!resposta.ok) throw new Error("Erro na resposta da API");
+            listaDeClientes = await resposta.json();
+            renderizarTabelaClientes(listaDeClientes);
+        } catch (erro) {
+            console.error("Erro ao puxar dados da porta 8001:", erro);
+            tabelaClientes.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--danger-color); padding: 30px;">Erro ao conectar com o banco de dados. O Docker tá rodando?</td></tr>';
+        }
+    }
+
+    function renderizarTabelaClientes(clientes) {
         tabelaClientes.innerHTML = '';
         if (clientes.length === 0) {
-            tabelaClientes.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; font-style: italic; color: var(--text-muted);">Nenhum cliente cadastrado ainda.</td></tr>';
+            tabelaClientes.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; font-style: italic; color: var(--text-muted);">Nenhum cliente cadastrado no banco ainda.</td></tr>';
             return;
         }
-        clientes.sort((a, b) => {
-            const dataA = a.ultimaVisita ? a.ultimaVisita.split('/').reverse().join('') : '0';
-            const dataB = b.ultimaVisita ? b.ultimaVisita.split('/').reverse().join('') : '0';
-            return dataB.localeCompare(dataA);
-        });
+        clientes.sort((a, b) => (b.cortes_total || 0) - (a.cortes_total || 0));
+
         tabelaClientes.innerHTML = clientes.map(c => {
             const linkWhats = gerarLinkWhatsApp(c.telefone, `Olá ${c.nome}, tudo bem? Aqui é da Dom Barbershop!`);
+            const cortes = c.cortes_total || 0;
+            const ultimaVisita = c.ultima_visita || 'Sem registro';
+
             return `
             <tr>
                 <td style="font-weight: bold; color: var(--text-color);">${c.nome}</td>
-                <td><a href="${linkWhats}" target="_blank" style="color: var(--success-color); text-decoration: none; font-weight: bold;">💬 ${c.telefone}</a></td>
-                <td>${c.ultimaVisita || 'Sem registo'}</td>
+                <td><a href="${linkWhats}" target="_blank" style="color: var(--success-color); text-decoration: none; font-weight: bold;">💬 ${c.telefone || '---'}</a></td>
+                <td>${ultimaVisita}</td>
                 <td>
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span><strong style="color: var(--primary-color);">${c.cortesTotal || 0}</strong> cortes</span>
-                        <button onclick="abrirPerfilCliente('${c.telefone}')" class="btn-check" style="background: none; border: none; cursor: pointer;">✏️</button>
+                        <span><strong style="color: var(--primary-color);">${cortes}</strong> cortes</span>
+                        <button onclick="abrirPerfilCliente(${c.id})" class="btn-check" style="background: none; border: none; cursor: pointer;" title="Ver Perfil">✏️</button>
                     </div>
                 </td>
             </tr>`;
         }).join('');
     }
-
-    window.abrirPerfilCliente = function(telefone) {
-        let clientes = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
-        const cliente = clientes.find(c => c.telefone === telefone);
+    if (inputBuscaCliente) {
+        inputBuscaCliente.addEventListener('input', (e) => {
+            const termo = e.target.value.toLowerCase();
+            const filtrados = listaDeClientes.filter(c => 
+                c.nome.toLowerCase().includes(termo) || 
+                (c.telefone && c.telefone.includes(termo))
+            );
+            renderizarTabelaClientes(filtrados);
+        });
+    }
+    window.abrirPerfilCliente = function(id) {
+        const cliente = listaDeClientes.find(c => c.id === id);
         if (cliente) {
-            telefoneClienteAtivo = telefone;
+            clienteAtivoId = id;
             document.getElementById('perfil-nome-cliente').innerText = cliente.nome;
-            document.getElementById('perfil-telefone').innerText = cliente.telefone;
-            document.getElementById('perfil-visita').innerText = cliente.ultimaVisita || 'Nenhuma visita';
-            document.getElementById('perfil-servico').innerText = cliente.servicoFavorito || '---';
-            const totalCortes = cliente.cortesTotal || 0;
+            document.getElementById('perfil-telefone').innerText = cliente.telefone || '---';
+            document.getElementById('perfil-visita').innerText = cliente.ultima_visita || 'Nenhuma visita';
+            document.getElementById('perfil-servico').innerText = cliente.servico_favorito || '---';
+            
+            const totalCortes = cliente.cortes_total || 0;
             document.getElementById('perfil-cortes').innerText = totalCortes;
+            
             const btnPremio = document.getElementById('btn-resgatar-premio');
             if (btnPremio) btnPremio.style.display = totalCortes >= 10 ? 'block' : 'none';
+            
             modalPerfil.classList.add('active');
         }
     };
 
-    window.fecharPerfilCliente = function() { modalPerfil.classList.remove('active'); telefoneClienteAtivo = null; };
-    
-    window.zerarCortes = function() {
-        let clientes = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
-        const index = clientes.findIndex(c => c.telefone === telefoneClienteAtivo);
-        if (index !== -1) {
-            clientes[index].cortesTotal = 0;
-            localStorage.setItem('clientes_barbearia', JSON.stringify(clientes));
-            mostrarNotificacao("Prêmio resgatado! Contador zerado.");
-            carregarClientes(); fecharPerfilCliente();
+    window.fecharPerfilCliente = function() { 
+        modalPerfil.classList.remove('active'); 
+        clienteAtivoId = null; 
+    };
+
+    window.zerarCortes = async function() {
+        if (!clienteAtivoId) return;
+        const cliente = listaDeClientes.find(c => c.id === clienteAtivoId);
+        
+        try {
+            const resposta = await fetch(`${API_CLIENTES}${clienteAtivoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...cliente, cortes_total: 0 }) 
+            });
+
+            if (resposta.ok) {
+                mostrarNotificacao("Prêmio resgatado! Contador zerado no banco.");
+                carregarClientes(); 
+                fecharPerfilCliente();
+            } else {
+                mostrarNotificacao("Erro ao atualizar o banco.", "erro");
+            }
+        } catch(e) {
+            mostrarNotificacao("Erro de conexão.", "erro");
         }
     };
-    
-    window.excluirCliente = function() {
-        let clientes = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
-        const novaLista = clientes.filter(c => c.telefone !== telefoneClienteAtivo);
-        localStorage.setItem('clientes_barbearia', JSON.stringify(novaLista));
-        mostrarNotificacao("Cliente removido.");
-        carregarClientes(); fecharPerfilCliente();
+
+    window.excluirCliente = async function() {
+        if (!clienteAtivoId) return;
+        if (!confirm("Tem certeza que deseja excluir DEFINITIVAMENTE este cliente do banco de dados?")) return;
+
+        try {
+            const resposta = await fetch(`${API_CLIENTES}${clienteAtivoId}`, { method: 'DELETE' });
+
+            if (resposta.ok) {
+                mostrarNotificacao("Cliente apagado do banco de dados.");
+                carregarClientes(); 
+                fecharPerfilCliente();
+            } else {
+                mostrarNotificacao("Erro ao deletar.", "erro");
+            }
+        } catch(e) {
+            mostrarNotificacao("Erro de conexão.", "erro");
+        }
     };
 
     carregarClientes();
 }
 
-// 6. SERVIÇOS E DASHBOARD CARDS
+          //serviços e dashboard card integrados ao docker
+const API_SERVICOS = "http://localhost:8000/servicos/";
+
 const gridServicos = document.getElementById('grid-servicos-container');
 const btnAddServico = document.querySelector('#servicos-page .btn-toggle');
 const modalServico = document.getElementById('modal-servico');
@@ -366,79 +408,178 @@ const btnSalvarModal = document.getElementById('btn-salvar-modal');
 const modalConfirmacao = document.getElementById('modal-confirmacao');
 const btnCancelarExclusao = document.getElementById('btn-cancelar-exclusao');
 const btnConfirmarExclusao = document.getElementById('btn-confirmar-exclusao');
-let servicoEditandoIndex = null; let indexParaRemover = null;
 
-if (gridServicos && modalServico) {
-    let servicos = JSON.parse(localStorage.getItem('servicos_barbearia')) || [
-        { nome: "Corte Clássico", preco: "R$ 40,00" }, { nome: "Barba Terapia", preco: "R$ 30,00" },
-        { nome: "Combo (Corte + Barba)", preco: "R$ 60,00" }, { nome: "Sobrancelha", preco: "R$ 15,00" }
-    ];
+let servicoEditandoId = null; 
+let idParaRemover = null;
 
-    function carregarServicos() {
-        gridServicos.innerHTML = servicos.map((s, index) => `
+async function carregarServicos() {
+    if (!gridServicos) return;
+
+    try {
+        const resposta = await fetch(API_SERVICOS);
+        const servicos = await resposta.json();
+        
+        gridServicos.innerHTML = '';
+        
+        if (servicos.length === 0) {
+            gridServicos.innerHTML = "<p style='color: var(--text-muted); font-style: italic; text-align: center; grid-column: 1 / -1; padding: 40px;'>Nenhum serviço cadastrado.</p>";
+            return;
+        }
+
+        gridServicos.innerHTML = servicos.map(s => `
             <div class="card-servico">
                 <strong style="font-size: 1.3rem; margin-bottom: 8px;">${s.nome}</strong>
-                <span style="color: var(--primary-color); font-weight: bold; font-size: 1.1rem;">${s.preco}</span>
+                <span style="color: var(--primary-color); font-weight: bold; font-size: 1.1rem;">
+                    R$ ${s.preco.toFixed(2).replace('.', ',')}
+                </span>
                 <div class="card-actions">
-                    <button onclick="abrirModalEditar(${index})" class="btn-editar-servico">Editar</button>
-                    <button onclick="removerServico(${index})" class="btn-remover-servico">Remover</button>
+                    <button onclick="abrirModalEditar(${s.id}, '${s.nome}', ${s.preco})" class="btn-editar-servico">Editar</button>
+                    <button onclick="prepararRemoverServico(${s.id})" class="btn-remover-servico">Remover</button>
                 </div>
             </div>
         `).join('');
-        localStorage.setItem('servicos_barbearia', JSON.stringify(servicos));
-    }
 
-    function abrirModal() { modalServico.classList.add('active'); }
-    function fecharModal() { modalServico.classList.remove('active'); inputNomeServico.value = ''; inputPrecoServico.value = ''; servicoEditandoIndex = null; }
-
-    window.abrirModalEditar = function(index) {
-        servicoEditandoIndex = index; modalTitle.innerText = "Editar Serviço";
-        inputNomeServico.value = servicos[index].nome; inputPrecoServico.value = servicos[index].preco;
-        abrirModal();
-    };
-
-    window.removerServico = function(index) { indexParaRemover = index; modalConfirmacao.classList.add('active'); };
-    function fecharModalConfirmacao() { if(modalConfirmacao) { modalConfirmacao.classList.remove('active'); indexParaRemover = null; } }
-    
-    if(btnCancelarExclusao) btnCancelarExclusao.addEventListener('click', fecharModalConfirmacao);
-    if(btnConfirmarExclusao) {
-        btnConfirmarExclusao.addEventListener('click', function() {
-            if (indexParaRemover !== null) {
-                servicos.splice(indexParaRemover, 1); carregarServicos();
-                if (typeof atualizarSelectDashboard === "function") atualizarSelectDashboard();
-                fecharModalConfirmacao();
-            }
-        });
-    }
-
-    if (btnAddServico) { btnAddServico.addEventListener('click', function() { servicoEditandoIndex = null; modalTitle.innerText = "Adicionar Novo Serviço"; abrirModal(); }); }
-    btnCancelarModal.addEventListener('click', fecharModal);
-    btnSalvarModal.addEventListener('click', function() {
-        const nome = inputNomeServico.value.trim(); const preco = inputPrecoServico.value.trim();
-        if (!nome || !preco) return alert("Preencha nome e preço.");
-        if (servicoEditandoIndex !== null) servicos[servicoEditandoIndex] = { nome, preco };
-        else servicos.push({ nome, preco });
-        carregarServicos(); fecharModal();
         if (typeof atualizarSelectDashboard === "function") atualizarSelectDashboard();
-    });
-    carregarServicos();
+
+    } catch (erro) {
+        console.error("Erro ao conectar com a API:", erro);
+        gridServicos.innerHTML = "<p style='color: var(--danger-color); text-align: center; grid-column: 1 / -1;'>Erro ao conectar com o servidor. O Docker está rodando?</p>";
+    }
 }
 
+function abrirModal() { modalServico.classList.add('active'); }
+
+function fecharModal() { 
+    modalServico.classList.remove('active'); 
+    inputNomeServico.value = ''; 
+    inputPrecoServico.value = ''; 
+    servicoEditandoId = null; 
+}
+
+window.abrirModalEditar = function(id, nome, preco) {
+    servicoEditandoId = id; 
+    modalTitle.innerText = "Editar Serviço";
+    inputNomeServico.value = nome; 
+    inputPrecoServico.value = preco.toFixed(2).replace('.', ',');
+    abrirModal();
+};
+
+if (btnAddServico) { 
+    btnAddServico.addEventListener('click', function() { 
+        servicoEditandoId = null; 
+        modalTitle.innerText = "Adicionar Novo Serviço"; 
+        abrirModal(); 
+    }); 
+}
+
+if (btnCancelarModal) btnCancelarModal.addEventListener('click', fecharModal);
+if (btnSalvarModal) {
+    const cloneBtnSalvar = btnSalvarModal.cloneNode(true);
+    btnSalvarModal.parentNode.replaceChild(cloneBtnSalvar, btnSalvarModal);
+    
+    cloneBtnSalvar.addEventListener('click', async function() {
+        const nome = inputNomeServico.value.trim(); 
+        const precoText = inputPrecoServico.value.trim().replace(',', '.'); 
+        const preco = parseFloat(precoText);
+
+        if (!nome || isNaN(preco)) return mostrarNotificacao("Preencha o nome e um preço válido.", "erro");
+
+        try {
+    
+            const respostaChecagem = await fetch(API_SERVICOS);
+            const listaAtual = await respostaChecagem.json();
+            const servicoDuplicado = listaAtual.find(s => s.nome.toLowerCase() === nome.toLowerCase());
+
+            if (servicoDuplicado && !servicoEditandoId) {
+                return mostrarNotificacao(`O serviço "${nome}" já existe no sistema!`, "erro");
+            }
+        } catch (e) {
+            console.error("Erro ao checar duplicatas:", e);
+        }
+
+        const metodoHttp = servicoEditandoId ? "PUT" : "POST";
+        const urlDestino = servicoEditandoId ? `${API_SERVICOS}${servicoEditandoId}` : API_SERVICOS;
+
+        try {
+            const resposta = await fetch(urlDestino, {
+                method: metodoHttp,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome: nome, preco: preco, descricao: "Sem descrição" })
+            });
+
+            if (resposta.ok) {
+                mostrarNotificacao(servicoEditandoId ? "Serviço atualizado!" : "Serviço criado!");
+                carregarServicos(); 
+                fecharModal();
+            } else {
+                mostrarNotificacao("Erro ao salvar no banco.", "erro");
+            }
+        } catch (erro) {
+            console.error(erro);
+            mostrarNotificacao("Erro de conexão com o banco.", "erro");
+        }
+    });
+}
+
+window.prepararRemoverServico = function(id) { 
+    idParaRemover = id; 
+    modalConfirmacao.classList.add('active'); 
+};
+
+function fecharModalConfirmacao() { 
+    if(modalConfirmacao) modalConfirmacao.classList.remove('active'); 
+    idParaRemover = null; 
+}
+
+if(btnCancelarExclusao) btnCancelarExclusao.addEventListener('click', fecharModalConfirmacao);
+
+if(btnConfirmarExclusao) {
+    const cloneBtnConfirmar = btnConfirmarExclusao.cloneNode(true);
+    btnConfirmarExclusao.parentNode.replaceChild(cloneBtnConfirmar, btnConfirmarExclusao);
+    
+    cloneBtnConfirmar.addEventListener('click', async function() {
+        if (idParaRemover !== null) {
+            try {
+                const resposta = await fetch(`${API_SERVICOS}${idParaRemover}`, {
+                    method: 'DELETE'
+                });
+
+                if (resposta.ok) {
+                    mostrarNotificacao("Serviço removido com sucesso!");
+                    carregarServicos();
+                    fecharModalConfirmacao();
+                } else {
+                    mostrarNotificacao("Erro ao deletar no banco.", "erro");
+                }
+            } catch (erro) {
+                mostrarNotificacao("Erro de conexão.", "erro");
+            }
+        }
+    });
+}
+carregarServicos();
+
+       //atualizar dashboards e utilidades
 const selectServicoDashboard = document.getElementById('servico');
-function atualizarSelectDashboard() {
+async function atualizarSelectDashboard() {
     if (selectServicoDashboard) {
-        const servicosCadastrados = JSON.parse(localStorage.getItem('servicos_barbearia')) || [];
-        selectServicoDashboard.innerHTML = '<option value="" disabled selected>Escolha o serviço...</option>';
-        servicosCadastrados.forEach(s => {
-            const option = document.createElement('option');
-            option.value = s.nome.toLowerCase().replace(/\s+/g, '-');
-            option.textContent = `${s.nome} (${s.preco})`;
-            selectServicoDashboard.appendChild(option);
-        });
+        try {
+            const resposta = await fetch("http://localhost:8000/servicos/");
+            const servicosCadastrados = await resposta.json();
+            
+            selectServicoDashboard.innerHTML = '<option value="" disabled selected>Escolha o serviço...</option>';
+            servicosCadastrados.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.nome;
+                option.textContent = `${s.nome} (R$ ${s.preco.toFixed(2).replace('.', ',')})`;
+                selectServicoDashboard.appendChild(option);
+            });
+        } catch (e) {
+            console.error("Erro ao puxar serviços para o dashboard:", e);
+        }
     }
 }
 atualizarSelectDashboard();
-
 const inputTelefone = document.getElementById('telefone');
 if (inputTelefone) {
     inputTelefone.addEventListener('input', function(e) {

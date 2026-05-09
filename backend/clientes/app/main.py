@@ -1,10 +1,18 @@
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from . import models, schemas, database
 
 models.Base.metadata.create_all(bind=database.engine)
 
-app = FastAPI(title="Barber Manager - Clientes API")
+app = FastAPI(title="Barber Manager - API de clientes")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/clientes/", response_model=schemas.ClienteResponse, status_code=201)
 def create_cliente(cliente: schemas.ClienteCreate, db: Session = Depends(database.get_db)):

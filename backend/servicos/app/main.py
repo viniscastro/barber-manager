@@ -6,7 +6,7 @@ from . import models, schemas, database
 
 models.Base.metadata.create_all(bind=database.engine)
 
-app = FastAPI(title="API Barber Manager")
+app = FastAPI(title="Barber Manager - API de serviços")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
