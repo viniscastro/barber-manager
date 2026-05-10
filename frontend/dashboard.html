@@ -27,14 +27,14 @@
     <main class="main-content">
         <header class="top-header">
             <h1 id="page-title">Visão Geral do Dia</h1>
-            <div class="user-profile"><span>Bem-vindo, Cassiano</span></div>
+            <div class="user-profile"><span>Sejam bem-vindos</span></div>
         </header>
 
         <section id="dashboard-page" class="active-page">
             <section class="dashboard-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div class="card">
                     <h3>Cortes Agendados</h3>
-                    <p class="number">0</p>
+                    <p class="number" id="total-cortes">0</p>
                 </div>
                 <div class="card">
                     <h3>Próximo Cliente</h3>
@@ -75,9 +75,10 @@
                             <label for="profissional">Profissional</label>
                             <select id="profissional" name="profissional" required>
                                 <option value="" disabled selected>Escolha o barbeiro...</option>
-                                <option value="Cassiano">Cassiano</option>
-                                <option value="João">João</option>
-                                <option value="Pedro">Pedro</option>
+                                <option value="Elton">Elton Emanuel</option>
+                                <option value="David">David Ezequiel</option>
+                                <option value="Enderson">Enderson Carvalho</option>
+                                <option value="Jefferson">Jefferson Felipe</option>
                             </select>
                         </div>
                     </div>
@@ -93,6 +94,7 @@
     </main>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/main.js"></script>
     <script src="js/dashboard.js"></script>
 </body>

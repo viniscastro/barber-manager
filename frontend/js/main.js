@@ -56,67 +56,7 @@ function gerarLinkWhatsApp(telefone, mensagem) {
     if (numeroLimpo.length === 10 || numeroLimpo.length === 11) numeroLimpo = '55' + numeroLimpo;
     return `https://wa.me/${numeroLimpo}?text=${encodeURIComponent(mensagem)}`;
 }
-
-          //salver agendamento e cliente
-const formAgendamento = document.getElementById('agendamento-form');
-if (formAgendamento) {
-    formAgendamento.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const nome = document.getElementById('nome').value;
-        const telefone = document.getElementById('telefone').value;
-        const servico = document.getElementById('servico').options[document.getElementById('servico').selectedIndex].text;
-        const selectProfissional = document.getElementById('profissional');
-        const profissional = selectProfissional ? selectProfissional.value : 'Cassiano';
-        const dataHoraRaw = document.getElementById('data-hora').value;
-        const data = dataHoraRaw.split(' ')[0] || "00/00/0000";
-        const hora = dataHoraRaw.split(' ')[1] || "00:00";
-        
-        let agendamentosSalvos = JSON.parse(localStorage.getItem('agendamentos_barbearia')) || [];
-        const duracaoNovo = obterDuracaoServico(servico);
-        const novoInicioMins = timeToMins(hora);
-        const novoFimMins = novoInicioMins + duracaoNovo;
-
-        const ocupadosNoDia = agendamentosSalvos.filter(a => {
-            const isMesmoDia = (a.data === data || !a.data);
-            const isMesmoProfissional = (a.profissional || 'Cassiano') === profissional;
-            return isMesmoDia && isMesmoProfissional;
-        });
-
-        const conflito = ocupadosNoDia.find(a => {
-            const aInicio = timeToMins(a.hora);
-            const aFim = aInicio + (a.duracao || 45);
-            return (novoInicioMins < aFim) && (novoFimMins > aInicio);
-        });
-
-        if (conflito) {
-            let msgErro = `<strong style="font-size: 1.1em;">Agenda de ${profissional} Ocupada</strong><br><br>O horário das ${hora} choca com outro cliente no dia ${data}.<br>`;
-            mostrarNotificacao(msgErro, 'erro');
-            return;
-        }
-
-        agendamentosSalvos.push({ nome, telefone, servico, profissional, data, hora, duracao: duracaoNovo, status: 'pendente' });
-        localStorage.setItem('agendamentos_barbearia', JSON.stringify(agendamentosSalvos));
-
-        let clientesSalvos = JSON.parse(localStorage.getItem('clientes_barbearia')) || [];
-        let clienteExistente = clientesSalvos.find(c => c.telefone === telefone);
-        if (clienteExistente) {
-            clienteExistente.ultimaVisita = data;
-            clienteExistente.cortesTotal = (clienteExistente.cortesTotal || 1) + 1;
-            clienteExistente.servicoFavorito = servico;
-        } else {
-            clientesSalvos.push({ nome, telefone, ultimaVisita: data, servicoFavorito: servico, cortesTotal: 1 });
-        }
-        localStorage.setItem('clientes_barbearia', JSON.stringify(clientesSalvos));
-
-        formAgendamento.reset();
-        mostrarNotificacao(`Agendamento com ${profissional} confirmado! ✅`);
-        setTimeout(() => { window.location.href = "agenda.html"; }, 2000);
-    });
-}
-         //agenda integrada ao docker
-const API_AGENDA = "http://localhost:8002/agendamentos/";
-const API_CLIENTES_AGENDA = "http://localhost:8001/clientes/";
-const API_SERVICOS_AGENDA = "http://localhost:8000/servicos/";
+          //agenda integrada ao Docker
 
 const btnToggleAgenda = document.getElementById('toggle-agenda-view');
 const viewTimeline = document.getElementById('agenda-timeline-view');
@@ -153,15 +93,13 @@ function formatarDataParaFiltro(date) {
 if (tabelaAgenda && timeline) {
     window.carregarAgendamentos = async function() {
         try {
-            const [resAgenda, resClientes, resServicos] = await Promise.all([
-                fetch(API_AGENDA),
-                fetch(API_CLIENTES_AGENDA),
-                fetch(API_SERVICOS_AGENDA)
+            // REFATORADO: Chamadas limpas usando o api.js
+            const [agendamentos, clientes, servicos] = await Promise.all([
+                API.getAgendamentos(),
+                API.getClientes(),
+                API.getServicos()
             ]);
 
-            let agendamentos = await resAgenda.json();
-            let clientes = await resClientes.json();
-            let servicos = await resServicos.json();
             const filtro = formatarDataParaFiltro(dataSelecionada);
             if (displayData) displayData.innerText = formatarDataParaDisplay(dataSelecionada);
 
@@ -179,7 +117,6 @@ if (tabelaAgenda && timeline) {
                     const horaDisplay = ag.data_hora.split('T')[1].substring(0, 5);
                     const duracao = ag.duracao || 45;
                     const msgLembrete = `Olá ${clienteObj.nome}, confirmamos seu horário às ${horaDisplay}...`;
-                    const linkWhats = gerarLinkWhatsApp(clienteObj.telefone, msgLembrete);
                     
                     let statusText = ''; let borderStyle = ''; let opacityStyle = '';
                     let statusLower = ag.status ? ag.status.toLowerCase() : 'pendente';
@@ -196,7 +133,7 @@ if (tabelaAgenda && timeline) {
                             <td>${horaDisplay}</td>
                             <td>${clienteObj.nome} <br> ${statusText}</td>
                             <td>${servicoObj.nome}</td>
-                            <td><button onclick="abrirModalExclusaoAgenda(${ag.id})">🗑️</button></td>
+                            <td><button onclick="abrirModalExclusaoAgenda(${ag.id})" style="cursor:pointer;">🗑️</button></td>
                         </tr>`;
                     timeline.innerHTML += `
                         <div class="timeline-slot" style="${opacityStyle}">
@@ -207,7 +144,7 @@ if (tabelaAgenda && timeline) {
                                     <span class="service-tag">${servicoObj.nome}</span>
                                     <br>${statusText}
                                 </div>
-                                <button onclick="abrirModalExclusaoAgenda(${ag.id})">🗑️</button>
+                                <button onclick="abrirModalExclusaoAgenda(${ag.id})" style="cursor:pointer; background:none; border:none;">🗑️</button>
                             </div>
                         </div>`;
                 });
@@ -219,13 +156,8 @@ if (tabelaAgenda && timeline) {
 
     window.alterarStatusAgendamento = async function(id, status) {
         try {
-            const res = await fetch(`${API_AGENDA}${id}`);
-            const ag = await res.json();
-            await fetch(`${API_AGENDA}${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...ag, status: status })
-            });
+            const ag = await API.getAgendamentoPorId(id);
+            await API.atualizarAgendamento(id, { ...ag, status: status });
 
             mostrarNotificacao(`Status alterado: ${status === 'concluido' ? 'Concluído ✅' : 'Faltou ❌'}`, status === 'faltou' ? 'erro' : 'sucesso');
             carregarAgendamentos();
@@ -245,7 +177,7 @@ if (tabelaAgenda && timeline) {
         cloneBtn.addEventListener('click', async function() {
             if (idAgendaParaRemover !== null) {
                 try {
-                    await fetch(`${API_AGENDA}${idAgendaParaRemover}`, { method: 'DELETE' });
+                    await API.deletarAgendamento(idAgendaParaRemover);
                     carregarAgendamentos();
                     fecharModalAgenda();
                     mostrarNotificacao("Horário removido da agenda.");
