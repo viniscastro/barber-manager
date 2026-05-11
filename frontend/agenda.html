@@ -38,13 +38,13 @@
                 </div>
 
                 <div id="agenda-timeline-view">
-                    <div class="agenda-navigation" style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 25px; background: var(--bg-card); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color);">
-                        <button id="btn-prev-day" class="btn-toggle" style="padding: 5px 15px;">⬅️</button>
-                        <div style="text-align: center; cursor: pointer;" id="container-datepicker-agenda">
-                            <span id="display-data-agenda" style="font-weight: bold; font-size: 1.1rem; color: var(--primary-color);">Carregando...</span>
+                    <div class="agenda-navigation">
+                        <button id="btn-prev-day" class="btn-toggle btn-small">⬅️</button>
+                        <div class="datepicker-container" id="container-datepicker-agenda">
+                            <span id="display-data-agenda" class="display-data">Carregando...</span>
                             <input type="text" id="datepicker-agenda" style="display: none;">
                         </div>
-                        <button id="btn-next-day" class="btn-toggle" style="padding: 5px 15px;">➡️</button>
+                        <button id="btn-next-day" class="btn-toggle btn-small">➡️</button>
                     </div>
 
                     <div class="timeline" id="daily-timeline"></div>
@@ -57,7 +57,7 @@
                                 <th>Hora</th>
                                 <th>Cliente</th>
                                 <th>Serviço</th>
-                                <th>Detalhes</th>
+                                <th>Cancelar</th>
                             </tr>
                         </thead>
                         <tbody id="tabela-agenda-body"></tbody>
@@ -69,10 +69,10 @@
         <div id="modal-confirmacao-agenda" class="modal-overlay">
             <div class="modal-content">
                 <h3>Cancelar Agendamento?</h3>
-                <p style="color: var(--text-muted); margin-bottom: 25px; text-align: center;">Tem certeza que deseja cancelar este horário?</p>
+                <p class="modal-text">Tem certeza que deseja cancelar este horário?</p>
                 <div class="modal-actions">
                     <button id="btn-cancelar-agenda" class="btn-cancelar">Voltar</button>
-                    <button id="btn-confirmar-agenda" class="btn-submit" style="background-color: var(--danger-color); color: #fff;">Cancelar</button>
+                    <button id="btn-confirmar-agenda" class="btn-submit btn-danger">Cancelar</button>
                 </div>
             </div>
         </div>

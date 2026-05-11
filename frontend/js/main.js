@@ -1,6 +1,6 @@
-                   //Calendário e navegação
+// Calendário e navegação
 if (document.getElementById("data-hora")) {
-    flatpickr("#data-hora", { enableTime: true, dateFormat: "d/m/Y H:i", minDate: "today", time_24hr: true, locale: "pt", minTime: "08:00", maxTime: "20:00", disable: [function(date) { return (date.getDay() === 0); }] });
+    flatpickr("#data-hora", { enableTime: true, dateFormat: "d/m/Y H:i", minDate: "today", time_24hr: true, locale: "pt", minTime: "08:00", maxTime: "20:00", disable: [date => date.getDay() === 0] });
 }
 
 document.querySelectorAll('.nav-links a').forEach(link => {
@@ -8,579 +8,320 @@ document.querySelectorAll('.nav-links a').forEach(link => {
         const href = this.getAttribute('href');
         if (href.startsWith('#')) {
             e.preventDefault();
-            document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-links a, .tab-content').forEach(el => el.classList.remove('active'));
             this.classList.add('active');
-            const targetId = href.substring(1);
-            document.querySelectorAll('.tab-content').forEach(section => section.classList.remove('active'));
-            const targetSection = document.getElementById(targetId);
+            const targetSection = document.getElementById(href.substring(1));
             if (targetSection) targetSection.classList.add('active');
-            const textoLink = this.innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDE4F\uDE80-\uDEFF]|[\u2600-\u2B55]\uFE0F?/g, '').trim();
             const pageTitle = document.getElementById('page-title');
-            if (pageTitle) pageTitle.innerText = textoLink;
+            if (pageTitle) pageTitle.innerText = this.innerText.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDE4F\uDE80-\uDEFF]|[\u2600-\u2B55]\uFE0F?/g, '').trim();
         }
     });
 });
 
-           //funções auxiliares
-window.fecharNotificacao = function() {
+// Funções auxiliares e notificações
+window.fecharNotificacao = () => {
     const toast = document.getElementById('custom-toast');
-    if (toast) { toast.classList.remove('show'); if (toast.hideTimeout) clearTimeout(toast.hideTimeout); }
+    if (toast) { toast.classList.remove('show'); clearTimeout(toast.hideTimeout); }
 };
 
 function mostrarNotificacao(mensagem, tipo = 'sucesso') {
-    let toast = document.getElementById('custom-toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'custom-toast';
-        document.body.appendChild(toast);
-    }
-    if (toast.hideTimeout) clearTimeout(toast.hideTimeout);
+    let toast = document.getElementById('custom-toast') || Object.assign(document.createElement('div'), { id: 'custom-toast' });
+    if (!toast.parentNode) document.body.appendChild(toast);
+    clearTimeout(toast.hideTimeout);
     toast.className = `toast-notification ${tipo === 'erro' ? 'error' : ''}`;
-    toast.innerHTML = `<span style="font-size: 1.5rem; line-height: 1;">${tipo === 'erro' ? '⚠️' : '✅'}</span> <div style="flex: 1;">${mensagem}</div><button class="toast-close" onclick="fecharNotificacao()" title="Fechar">&times;</button>`;
-    setTimeout(() => { toast.classList.add('show'); }, 10);
-    toast.hideTimeout = setTimeout(() => { toast.classList.remove('show'); }, tipo === 'erro' ? 8000 : 3000);
+    toast.innerHTML = `<span class="toast-icon">${tipo === 'erro' ? '⚠️' : '✅'}</span> <div class="toast-message">${mensagem}</div><button class="toast-close" onclick="fecharNotificacao()" title="Fechar">&times;</button>`;
+    setTimeout(() => toast.classList.add('show'), 10);
+    toast.hideTimeout = setTimeout(() => toast.classList.remove('show'), tipo === 'erro' ? 8000 : 3000);
 }
 
-function timeToMins(timeStr) { const partes = timeStr.split(':'); return parseInt(partes[0]) * 60 + parseInt(partes[1]); }
-function minsToTime(mins) { const h = Math.floor(mins / 60).toString().padStart(2, '0'); const m = (mins % 60).toString().padStart(2, '0'); return `${h}:${m}`; }
-function obterDuracaoServico(nomeServico) {
-    const nome = nomeServico.toLowerCase();
-    if (nome.includes('combo')) return 60;
-    if (nome.includes('barba')) return 30;
-    if (nome.includes('sobrancelha')) return 15;
-    return 45;
-}
 function gerarLinkWhatsApp(telefone, mensagem) {
     if (!telefone) return '#';
-    let numeroLimpo = telefone.replace(/\D/g, '');
-    if (numeroLimpo.length === 10 || numeroLimpo.length === 11) numeroLimpo = '55' + numeroLimpo;
-    return `https://wa.me/${numeroLimpo}?text=${encodeURIComponent(mensagem)}`;
+    let num = telefone.replace(/\D/g, '');
+    if (num.length === 10 || num.length === 11) num = '55' + num;
+    return `https://wa.me/${num}?text=${encodeURIComponent(mensagem)}`;
 }
-          //agenda integrada ao Docker
 
-const btnToggleAgenda = document.getElementById('toggle-agenda-view');
+// Utilitários de API e dados
+const API_AGENDA = "http://localhost:8002/agendamentos/";
+const API_CLIENTES = "http://localhost:8001/clientes/";
+const API_SERVICOS = "http://localhost:8000/servicos/";
+
+const parseStatus = (st) => {
+    const parts = (st || 'pendente|Cassiano').split('|');
+    return { status: parts[0].toLowerCase(), prof: parts[1] || 'Cassiano' };
+};
+
+const fetchWithFallback = async (url, options) => {
+    let res = await fetch(url, options);
+    if (!res.ok && res.status !== 200) res = await fetch(url.replace(/\/$/, ''), options);
+    if (!res.ok && res.status !== 200) throw new Error(`API Error: ${res.status}`);
+    return res;
+};
+
+const fetchAllData = async () => {
+    const [agRes, cliRes, servRes] = await Promise.all([fetch(API_AGENDA, {cache:'no-store'}), fetch(API_CLIENTES, {cache:'no-store'}), fetch(API_SERVICOS, {cache:'no-store'})]);
+    return { agendamentos: await agRes.json(), clientes: await cliRes.json(), servicos: await servRes.json() };
+};
+
+const formatDataFiltro = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+// Agenda
+const toggleAgenda = document.getElementById('toggle-agenda-view');
 const viewTimeline = document.getElementById('agenda-timeline-view');
 const viewTable = document.getElementById('agenda-table-view');
-const tabelaAgenda = document.getElementById('tabela-agenda-body');
-const timeline = document.getElementById('daily-timeline');
-const displayData = document.getElementById('display-data-agenda');
-const modalConfirmacaoAgenda = document.getElementById('modal-confirmacao-agenda');
-const btnCancelarAgenda = document.getElementById('btn-cancelar-agenda');
-const btnConfirmarAgenda = document.getElementById('btn-confirmar-agenda');
-let idAgendaParaRemover = null;
 let dataSelecionada = new Date();
 
-if (btnToggleAgenda) {
-    btnToggleAgenda.addEventListener('click', function() {
-        if (viewTimeline.style.display !== 'none') {
-            viewTimeline.style.display = 'none'; viewTable.style.display = 'block'; this.innerText = 'Ver Agenda do Dia';
-        } else {
-            viewTimeline.style.display = 'block'; viewTable.style.display = 'none'; this.innerText = 'Ver Tabela Completa';
-        }
+if (toggleAgenda) {
+    toggleAgenda.addEventListener('click', function() {
+        const isTimeline = viewTimeline.style.display !== 'none';
+        viewTimeline.style.display = isTimeline ? 'none' : 'block';
+        viewTable.style.display = isTimeline ? 'block' : 'none';
+        this.innerText = isTimeline ? 'Ver Agenda do Dia' : 'Ver Tabela Completa';
     });
 }
 
-function formatarDataParaDisplay(date) {
-    const hoje = new Date();
-    const prefixo = date.toDateString() === hoje.toDateString() ? "Hoje - " : "";
-    return prefixo + date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
-}
-
-function formatarDataParaFiltro(date) {
-    return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
-}
-
-if (tabelaAgenda && timeline) {
+if (document.getElementById('tabela-agenda-body')) {
     window.carregarAgendamentos = async function() {
         try {
-            // REFATORADO: Chamadas limpas usando o api.js
-            const [agendamentos, clientes, servicos] = await Promise.all([
-                API.getAgendamentos(),
-                API.getClientes(),
-                API.getServicos()
-            ]);
-
-            const filtro = formatarDataParaFiltro(dataSelecionada);
-            if (displayData) displayData.innerText = formatarDataParaDisplay(dataSelecionada);
-
-            let agendamentosDoDia = agendamentos.filter(a => a.data_hora && a.data_hora.startsWith(filtro));
-            agendamentosDoDia.sort((a, b) => a.data_hora.localeCompare(b.data_hora));
-            tabelaAgenda.innerHTML = ''; timeline.innerHTML = '';
-
-            if (agendamentosDoDia.length === 0) {
-                timeline.innerHTML = '<p style="color: var(--text-muted); font-style: italic; text-align: center; padding: 20px;">Nenhum agendamento para este dia.</p>';
-                tabelaAgenda.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; font-style: italic; color: var(--text-muted);">Nenhum agendamento para este dia.</td></tr>';
-            } else {
-                agendamentosDoDia.forEach(ag => {
-                    const clienteObj = clientes.find(c => c.id === ag.cliente_id) || { nome: 'Cliente Antigo', telefone: '' };
-                    const servicoObj = servicos.find(s => s.id === ag.servico_id) || { nome: 'Serviço Removido' };
-                    const horaDisplay = ag.data_hora.split('T')[1].substring(0, 5);
-                    const duracao = ag.duracao || 45;
-                    const msgLembrete = `Olá ${clienteObj.nome}, confirmamos seu horário às ${horaDisplay}...`;
-                    
-                    let statusText = ''; let borderStyle = ''; let opacityStyle = '';
-                    let statusLower = ag.status ? ag.status.toLowerCase() : 'pendente';
-
-                    if (statusLower === 'concluido') {
-                        opacityStyle = 'opacity: 0.7;'; borderStyle = 'border-left: 4px solid var(--success-color);';
-                        statusText = '<span style="color: var(--success-color); font-weight: bold;">✅ CONCLUÍDO</span>';
-                    } else if (statusLower === 'faltou') {
-                        opacityStyle = 'opacity: 0.6;'; borderStyle = 'border-left: 4px solid var(--danger-color);';
-                        statusText = '<span style="color: var(--danger-color); font-weight: bold;">❌ FALTOU</span>';
-                    }
-                    tabelaAgenda.innerHTML += `
-                        <tr style="${opacityStyle}">
-                            <td>${horaDisplay}</td>
-                            <td>${clienteObj.nome} <br> ${statusText}</td>
-                            <td>${servicoObj.nome}</td>
-                            <td><button onclick="abrirModalExclusaoAgenda(${ag.id})" style="cursor:pointer;">🗑️</button></td>
-                        </tr>`;
-                    timeline.innerHTML += `
-                        <div class="timeline-slot" style="${opacityStyle}">
-                            <div class="slot-time">${horaDisplay}</div>
-                            <div class="appointment-card" style="${borderStyle}">
-                                <div>
-                                    <span class="client-name">${clienteObj.nome}</span>
-                                    <span class="service-tag">${servicoObj.nome}</span>
-                                    <br>${statusText}
-                                </div>
-                                <button onclick="abrirModalExclusaoAgenda(${ag.id})" style="cursor:pointer; background:none; border:none;">🗑️</button>
-                            </div>
-                        </div>`;
-                });
+            const { agendamentos, clientes, servicos } = await fetchAllData();
+            const filtro = formatDataFiltro(dataSelecionada);
+            const displayData = document.getElementById('display-data-agenda');
+            if (displayData) {
+                const prefixo = dataSelecionada.toDateString() === new Date().toDateString() ? "Hoje - " : "";
+                displayData.innerText = prefixo + dataSelecionada.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
             }
-        } catch (erro) {
-            console.error("Erro ao carregar a Agenda:", erro);
-        }
-    }
-
-    window.alterarStatusAgendamento = async function(id, status) {
-        try {
-            const ag = await API.getAgendamentoPorId(id);
-            await API.atualizarAgendamento(id, { ...ag, status: status });
-
-            mostrarNotificacao(`Status alterado: ${status === 'concluido' ? 'Concluído ✅' : 'Faltou ❌'}`, status === 'faltou' ? 'erro' : 'sucesso');
-            carregarAgendamentos();
-        } catch (e) {
-            mostrarNotificacao("Erro ao atualizar status.", "erro");
-        }
+            const agDia = agendamentos.filter(a => a.data_hora?.startsWith(filtro)).sort((a, b) => a.data_hora.localeCompare(b.data_hora));
+            const tabela = document.getElementById('tabela-agenda-body'), timeline = document.getElementById('daily-timeline');
+            tabela.innerHTML = ''; timeline.innerHTML = '';
+            
+            if (agDia.length === 0) {
+                // REFATORADO: Uso das classes text-muted, text-center e p-20
+                timeline.innerHTML = '<p class="text-muted text-center p-20">Nenhum agendamento.</p>';
+                tabela.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhum agendamento.</td></tr>';
+                return;
+            }
+            
+            agDia.forEach(ag => {
+                const cli = clientes.find(c => c.id == ag.cliente_id) || { nome: 'Desconhecido' }, serv = servicos.find(s => s.id == ag.servico_id) || { nome: 'Removido' };
+                const hora = ag.data_hora.split('T')[1].substring(0, 5), { status, prof } = parseStatus(ag.status);
+                let stClass = '', borderClass = '', stText = '';
+                if (status === 'concluido') { stClass = 'status-concluido'; borderClass = 'border-concluido'; stText = '<span class="text-success font-bold">✅ CONCLUÍDO</span>'; }
+                else if (status === 'faltou') { stClass = 'status-faltou'; borderClass = 'border-faltou'; stText = '<span class="text-danger font-bold">❌ FALTOU</span>'; }
+                else if (status === 'resgatado') { stClass = 'status-resgatado'; borderClass = 'border-resgatado'; stText = '<span class="text-warning font-bold">🎁 RESGATADO</span>'; }
+                
+                tabela.innerHTML += `<tr class="${stClass}"><td>${hora}</td><td>${cli.nome}<br><small class="text-muted">com ${prof}</small><br>${stText}</td><td>${serv.nome}</td><td><button onclick="abrirModalExclusaoAgenda(${ag.id})" class="btn-icon">🗑️</button></td></tr>`;
+                timeline.innerHTML += `<div class="timeline-slot ${stClass}"><div class="slot-time">${hora}</div><div class="appointment-card ${borderClass}"><div><span class="client-name">${cli.nome}</span> <span class="service-tag">${serv.nome}</span><br><small class="text-muted">Barbeiro: ${prof}</small><br>${stText}</div><button onclick="abrirModalExclusaoAgenda(${ag.id})" class="btn-icon">🗑️</button></div></div>`;
+            });
+        } catch (e) { console.error(e); }
     };
-
-    window.abrirModalExclusaoAgenda = function(id) { idAgendaParaRemover = id; modalConfirmacaoAgenda.classList.add('active'); };
-    function fecharModalAgenda() { if (modalConfirmacaoAgenda) { modalConfirmacaoAgenda.classList.remove('active'); idAgendaParaRemover = null; } }
     
-    if (btnCancelarAgenda) btnCancelarAgenda.addEventListener('click', fecharModalAgenda);
-    
-    if (btnConfirmarAgenda) {
-        const cloneBtn = btnConfirmarAgenda.cloneNode(true);
-        btnConfirmarAgenda.parentNode.replaceChild(cloneBtn, btnConfirmarAgenda);
-        cloneBtn.addEventListener('click', async function() {
-            if (idAgendaParaRemover !== null) {
-                try {
-                    await API.deletarAgendamento(idAgendaParaRemover);
-                    carregarAgendamentos();
-                    fecharModalAgenda();
-                    mostrarNotificacao("Horário removido da agenda.");
-                } catch (e) {
-                    mostrarNotificacao("Erro ao deletar do banco.", "erro");
-                }
+    window.alterarStatusAgendamento = async (id, novoStatus) => {
+        try {
+            const ag = await (await fetch(`${API_AGENDA}${id}/`, { cache: 'no-store' })).json();
+            await fetchWithFallback(`${API_AGENDA}${id}/`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...ag, status: `${novoStatus}|${parseStatus(ag.status).prof}` }) });
+            mostrarNotificacao(`Status alterado com sucesso!`); carregarAgendamentos();
+            if (typeof carregarClientes === 'function') carregarClientes();
+            if (typeof atualizarDashboardCards === 'function') atualizarDashboardCards();
+        } catch (e) { mostrarNotificacao("Erro ao atualizar status.", "erro"); }
+    };
+    let idAgendaParaRemover = null;
+    window.abrirModalExclusaoAgenda = id => { idAgendaParaRemover = id; document.getElementById('modal-confirmacao-agenda').classList.add('active'); };
+    window.fecharModalAgenda = () => { document.getElementById('modal-confirmacao-agenda').classList.remove('active'); idAgendaParaRemover = null; };
+    document.getElementById('btn-cancelar-agenda')?.addEventListener('click', fecharModalAgenda);
+    const btnConfAgenda = document.getElementById('btn-confirmar-agenda');
+    if (btnConfAgenda) {
+        btnConfAgenda.replaceWith(btnConfAgenda.cloneNode(true));
+        document.getElementById('btn-confirmar-agenda').addEventListener('click', async () => {
+            if (idAgendaParaRemover) {
+                try { await fetchWithFallback(`${API_AGENDA}${idAgendaParaRemover}/`, { method: 'DELETE' }); carregarAgendamentos(); fecharModalAgenda(); mostrarNotificacao("Removido da agenda."); } 
+                catch (e) { mostrarNotificacao("Erro ao deletar.", "erro"); }
             }
         });
     }
-
-    if (displayData) {
-        document.getElementById('btn-prev-day').addEventListener('click', () => { dataSelecionada.setDate(dataSelecionada.getDate() - 1); carregarAgendamentos(); });
-        document.getElementById('btn-next-day').addEventListener('click', () => { dataSelecionada.setDate(dataSelecionada.getDate() + 1); carregarAgendamentos(); });
-        const picker = flatpickr("#datepicker-agenda", { locale: "pt", dateFormat: "Y-m-d", disableMobile: "true", onChange: function(selectedDates) { dataSelecionada = selectedDates[0]; carregarAgendamentos(); } });
-        document.getElementById('container-datepicker-agenda').addEventListener('click', () => picker.open());
+    document.getElementById('btn-prev-day')?.addEventListener('click', () => { dataSelecionada.setDate(dataSelecionada.getDate() - 1); carregarAgendamentos(); });
+    document.getElementById('btn-next-day')?.addEventListener('click', () => { dataSelecionada.setDate(dataSelecionada.getDate() + 1); carregarAgendamentos(); });
+    if(document.getElementById("datepicker-agenda")) {
+        const picker = flatpickr("#datepicker-agenda", { locale: "pt", dateFormat: "Y-m-d", disableMobile: "true", onChange: d => { dataSelecionada = d[0]; carregarAgendamentos(); } });
+        document.getElementById('container-datepicker-agenda')?.addEventListener('click', () => picker.open());
     }
-
     carregarAgendamentos();
 }
-         //clientes e perfil
-const API_CLIENTES = "http://localhost:8001/clientes/";
 
-const tabelaClientes = document.getElementById('tabela-clientes-body');
-const modalPerfil = document.getElementById('modal-perfil-cliente');
-const inputBuscaCliente = document.getElementById('busca-cliente');
-
-let clienteAtivoId = null;
-let listaDeClientes = [];
-
-if (tabelaClientes) {
-    window.carregarClientes = async function() {
+// Clientes
+let clienteAtivoId = null, listaDeClientes = [];
+if (document.getElementById('tabela-clientes-body')) {
+    window.carregarClientes = async () => {
         try {
-            const resposta = await fetch(API_CLIENTES);
-            if (!resposta.ok) throw new Error("Erro na resposta da API");
-            listaDeClientes = await resposta.json();
-            renderizarTabelaClientes(listaDeClientes);
-        } catch (erro) {
-            console.error("Erro ao puxar dados da porta 8001:", erro);
-            tabelaClientes.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--danger-color); padding: 30px;">Erro ao conectar com o banco de dados. O Docker tá rodando?</td></tr>';
-        }
-    }
-
-    function renderizarTabelaClientes(clientes) {
-        tabelaClientes.innerHTML = '';
-        if (clientes.length === 0) {
-            tabelaClientes.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; font-style: italic; color: var(--text-muted);">Nenhum cliente cadastrado no banco ainda.</td></tr>';
-            return;
-        }
-        clientes.sort((a, b) => (b.cortes_total || 0) - (a.cortes_total || 0));
-
-        tabelaClientes.innerHTML = clientes.map(c => {
-            const linkWhats = gerarLinkWhatsApp(c.telefone, `Olá ${c.nome}, tudo bem? Aqui é da Dom Barbershop!`);
-            const cortes = c.cortes_total || 0;
-            const ultimaVisita = c.ultima_visita || 'Sem registro';
-
-            return `
-            <tr>
-                <td style="font-weight: bold; color: var(--text-color);">${c.nome}</td>
-                <td><a href="${linkWhats}" target="_blank" style="color: var(--success-color); text-decoration: none; font-weight: bold;">💬 ${c.telefone || '---'}</a></td>
-                <td>${ultimaVisita}</td>
-                <td>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span><strong style="color: var(--primary-color);">${cortes}</strong> cortes</span>
-                        <button onclick="abrirPerfilCliente(${c.id})" class="btn-check" style="background: none; border: none; cursor: pointer;" title="Ver Perfil">✏️</button>
-                    </div>
-                </td>
-            </tr>`;
-        }).join('');
-    }
-    if (inputBuscaCliente) {
-        inputBuscaCliente.addEventListener('input', (e) => {
-            const termo = e.target.value.toLowerCase();
-            const filtrados = listaDeClientes.filter(c => 
-                c.nome.toLowerCase().includes(termo) || 
-                (c.telefone && c.telefone.includes(termo))
-            );
-            renderizarTabelaClientes(filtrados);
-        });
-    }
-    window.abrirPerfilCliente = function(id) {
-        const cliente = listaDeClientes.find(c => c.id === id);
-        if (cliente) {
-            clienteAtivoId = id;
-            document.getElementById('perfil-nome-cliente').innerText = cliente.nome;
-            document.getElementById('perfil-telefone').innerText = cliente.telefone || '---';
-            document.getElementById('perfil-visita').innerText = cliente.ultima_visita || 'Nenhuma visita';
-            document.getElementById('perfil-servico').innerText = cliente.servico_favorito || '---';
-            
-            const totalCortes = cliente.cortes_total || 0;
-            document.getElementById('perfil-cortes').innerText = totalCortes;
-            
-            const btnPremio = document.getElementById('btn-resgatar-premio');
-            if (btnPremio) btnPremio.style.display = totalCortes >= 10 ? 'block' : 'none';
-            
-            modalPerfil.classList.add('active');
-        }
-    };
-
-    window.fecharPerfilCliente = function() { 
-        modalPerfil.classList.remove('active'); 
-        clienteAtivoId = null; 
-    };
-
-    window.zerarCortes = async function() {
-        if (!clienteAtivoId) return;
-        const cliente = listaDeClientes.find(c => c.id === clienteAtivoId);
-        
-        try {
-            const resposta = await fetch(`${API_CLIENTES}${clienteAtivoId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...cliente, cortes_total: 0 }) 
+            const { clientes, agendamentos } = await fetchAllData();
+            listaDeClientes = clientes.map(c => {
+                const agsCli = agendamentos.filter(a => a.cliente_id == c.id);
+                const concluidos = agsCli.filter(a => parseStatus(a.status).status === 'concluido');
+                const visitas = agsCli.filter(a => ['concluido', 'resgatado'].includes(parseStatus(a.status).status)).sort((a,b) => new Date(b.data_hora) - new Date(a.data_hora));
+                const pendentes = agsCli.filter(a => parseStatus(a.status).status === 'pendente').sort((a,b) => a.data_hora.localeCompare(b.data_hora));
+                return { ...c, cortes_total: concluidos.length, ultima_visita: visitas.length ? new Date(visitas[0].data_hora).toLocaleDateString('pt-BR') : 'Sem registro', proximo_horario: pendentes.length && pendentes[0].data_hora.includes('T') ? pendentes[0].data_hora.split('T')[1].substring(0,5) : null, profissionalResp: pendentes.length ? parseStatus(pendentes[0].status).prof : null };
             });
-
-            if (resposta.ok) {
-                mostrarNotificacao("Prêmio resgatado! Contador zerado no banco.");
-                carregarClientes(); 
-                fecharPerfilCliente();
-            } else {
-                mostrarNotificacao("Erro ao atualizar o banco.", "erro");
-            }
-        } catch(e) {
-            mostrarNotificacao("Erro de conexão.", "erro");
-        }
+            renderizarTabelaClientes(listaDeClientes);
+        } catch (e) { console.error(e); }
     };
-
-    window.excluirCliente = async function() {
-        if (!clienteAtivoId) return;
-        if (!confirm("Tem certeza que deseja excluir DEFINITIVAMENTE este cliente do banco de dados?")) return;
-
+    window.renderizarTabelaClientes = (clientes) => {
+        const tbody = document.getElementById('tabela-clientes-body');
+        if (!clientes.length) return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhum cliente.</td></tr>';
+        tbody.innerHTML = clientes.sort((a,b) => (b.cortes_total||0) - (a.cortes_total||0)).map(c => {
+            const msg = c.proximo_horario ? `Olá, tudo bem, ${c.nome}? Hoje às ${c.proximo_horario} você tem um corte com o barbeiro ${c.profissionalResp||'nossa equipe'}! Até logo!` : `Olá ${c.nome}, tudo bem? Aqui é da Dom Barbershop!`;
+            return `<tr><td class="font-bold">${c.nome}</td><td><a href="${gerarLinkWhatsApp(c.telefone, msg)}" target="_blank" class="text-success font-bold">💬 ${c.telefone||'---'}</a></td><td>${c.ultima_visita}</td><td><div class="flex-between-center"><span><strong class="text-primary">${c.cortes_total}</strong> cortes</span><button onclick="abrirPerfilCliente(${c.id})" class="btn-icon">✏️</button></div></td></tr>`;
+        }).join('');
+    };
+    document.getElementById('busca-cliente')?.addEventListener('input', e => {
+        const t = e.target.value.toLowerCase();
+        renderizarTabelaClientes(listaDeClientes.filter(c => c.nome.toLowerCase().includes(t) || c.telefone?.includes(t)));
+    });
+    window.abrirPerfilCliente = async (id) => {
+        const c = listaDeClientes.find(x => x.id == id); if (!c) return;
+        clienteAtivoId = id; document.getElementById('perfil-nome-cliente').innerText = c.nome; document.getElementById('perfil-telefone').innerText = c.telefone || '---'; document.getElementById('perfil-visita').innerText = c.ultima_visita; document.getElementById('perfil-cortes').innerText = c.cortes_total; document.getElementById('btn-resgatar-premio').style.display = c.cortes_total >= 10 ? 'block' : 'none';
+        const divAg = document.getElementById('status-agendamento-cliente'); divAg.style.display = 'none';
         try {
-            const resposta = await fetch(`${API_CLIENTES}${clienteAtivoId}`, { method: 'DELETE' });
-
-            if (resposta.ok) {
-                mostrarNotificacao("Cliente apagado do banco de dados.");
-                carregarClientes(); 
-                fecharPerfilCliente();
-            } else {
-                mostrarNotificacao("Erro ao deletar.", "erro");
+            const ags = await (await fetch(API_AGENDA, {cache:'no-store'})).json();
+            const pendentes = ags.filter(a => a.cliente_id == id && parseStatus(a.status).status === 'pendente').sort((a,b) => a.data_hora.localeCompare(b.data_hora));
+            if (pendentes[0]?.data_hora) {
+                divAg.style.display = 'block'; const [ano, mes, dia] = pendentes[0].data_hora.split('T')[0].split('-');
+                document.getElementById('horario-agendamento-cliente').parentNode.innerHTML = `🕒 <strong>Agendado para:</strong> <span id="horario-agendamento-cliente" class="text-large text-primary">${dia}/${mes} às ${pendentes[0].data_hora.split('T')[1].substring(0,5)}</span>`;
+                document.getElementById('btn-confirmar-cliente').onclick = () => resolverAgendamentoCliente(pendentes[0].id, 'Concluido', id);
+                document.getElementById('btn-faltou-cliente').onclick = () => resolverAgendamentoCliente(pendentes[0].id, 'Faltou', id);
             }
-        } catch(e) {
-            mostrarNotificacao("Erro de conexão.", "erro");
-        }
+        } catch(e) {}
+        document.getElementById('modal-perfil-cliente').classList.add('active');
     };
-
+    window.fecharPerfilCliente = () => { document.getElementById('modal-perfil-cliente').classList.remove('active'); clienteAtivoId = null; };
+    window.resolverAgendamentoCliente = async (agId, status, cliId) => {
+        try {
+            const ag = (await (await fetch(API_AGENDA, {cache:'no-store'})).json()).find(a => a.id == agId); if (!ag) throw new Error("Não encontrado.");
+            await fetchWithFallback(`${API_AGENDA}${agId}/`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...ag, status: `${status}|${parseStatus(ag.status).prof}`}) });
+            if (status.toLowerCase() === 'concluido') {
+                const cli = listaDeClientes.find(c => c.id == cliId);
+                if (cli) { cli.cortes_total++; cli.ultima_visita = new Date().toLocaleDateString('pt-BR'); renderizarTabelaClientes(listaDeClientes); document.getElementById('perfil-cortes').innerText = cli.cortes_total; if(cli.cortes_total >= 10) document.getElementById('btn-resgatar-premio').style.display = 'block'; mostrarNotificacao(`Confirmado! Total: ${cli.cortes_total} cortes.`); }
+            } else mostrarNotificacao("Desmarcado.", "erro");
+            document.getElementById('status-agendamento-cliente').style.display = 'none';
+            if(typeof atualizarDashboardCards === 'function') atualizarDashboardCards();
+        } catch(e) { mostrarNotificacao(`Erro: ${e.message}`, "erro"); }
+    };
+    window.zerarCortes = async () => {
+        if (!clienteAtivoId) return;
+        try {
+            const ags = await (await fetch(API_AGENDA, {cache:'no-store'})).json();
+            for (let ag of ags.filter(a => a.cliente_id == clienteAtivoId && parseStatus(a.status).status === 'concluido')) {
+                await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...ag, status: `Resgatado|${parseStatus(ag.status).prof}`}) });
+            }
+            mostrarNotificacao("Prêmio resgatado! Contagem zerada. 🎁"); carregarClientes(); fecharPerfilCliente();
+            if(typeof atualizarDashboardCards === 'function') atualizarDashboardCards();
+        } catch (e) { mostrarNotificacao("Erro ao resgatar.", "erro"); }
+    };
+    window.excluirCliente = () => document.getElementById('modal-confirmacao-exclusao-cliente')?.classList.add('active');
+    window.fecharModalExclusaoCliente = () => document.getElementById('modal-confirmacao-exclusao-cliente')?.classList.remove('active');
+    window.confirmarExclusaoCliente = async () => {
+        if (!clienteAtivoId) return;
+        try {
+            const ags = await (await fetch(API_AGENDA, {cache:'no-store'})).json();
+            for (let ag of ags.filter(a => a.cliente_id == clienteAtivoId)) await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method: 'DELETE' });
+            await fetchWithFallback(`${API_CLIENTES}${clienteAtivoId}/`, { method: 'DELETE' });
+            mostrarNotificacao("Cliente apagado.", "erro"); 
+            carregarClientes(); fecharPerfilCliente(); fecharModalExclusaoCliente();
+        } catch(e) { mostrarNotificacao("Erro de conexão.", "erro"); }
+    };
     carregarClientes();
 }
 
-          //serviços e dashboard card integrados ao docker
-const API_SERVICOS = "http://localhost:8000/servicos/";
-
-const gridServicos = document.getElementById('grid-servicos-container');
-const btnAddServico = document.querySelector('#servicos-page .btn-toggle');
-const modalServico = document.getElementById('modal-servico');
-const modalTitle = document.getElementById('modal-title');
-const inputNomeServico = document.getElementById('input-nome-servico');
-const inputPrecoServico = document.getElementById('input-preco-servico');
-const btnCancelarModal = document.getElementById('btn-cancelar-modal');
-const btnSalvarModal = document.getElementById('btn-salvar-modal');
-const modalConfirmacao = document.getElementById('modal-confirmacao');
-const btnCancelarExclusao = document.getElementById('btn-cancelar-exclusao');
-const btnConfirmarExclusao = document.getElementById('btn-confirmar-exclusao');
-
-let servicoEditandoId = null; 
-let idParaRemover = null;
-
-async function carregarServicos() {
-    if (!gridServicos) return;
-
-    try {
-        const resposta = await fetch(API_SERVICOS);
-        const servicos = await resposta.json();
-        
-        gridServicos.innerHTML = '';
-        
-        if (servicos.length === 0) {
-            gridServicos.innerHTML = "<p style='color: var(--text-muted); font-style: italic; text-align: center; grid-column: 1 / -1; padding: 40px;'>Nenhum serviço cadastrado.</p>";
-            return;
-        }
-
-        gridServicos.innerHTML = servicos.map(s => `
-            <div class="card-servico">
-                <strong style="font-size: 1.3rem; margin-bottom: 8px;">${s.nome}</strong>
-                <span style="color: var(--primary-color); font-weight: bold; font-size: 1.1rem;">
-                    R$ ${s.preco.toFixed(2).replace('.', ',')}
-                </span>
-                <div class="card-actions">
-                    <button onclick="abrirModalEditar(${s.id}, '${s.nome}', ${s.preco})" class="btn-editar-servico">Editar</button>
-                    <button onclick="prepararRemoverServico(${s.id})" class="btn-remover-servico">Remover</button>
-                </div>
-            </div>
-        `).join('');
-
-        if (typeof atualizarSelectDashboard === "function") atualizarSelectDashboard();
-
-    } catch (erro) {
-        console.error("Erro ao conectar com a API:", erro);
-        gridServicos.innerHTML = "<p style='color: var(--danger-color); text-align: center; grid-column: 1 / -1;'>Erro ao conectar com o servidor. O Docker está rodando?</p>";
-    }
-}
-
-function abrirModal() { modalServico.classList.add('active'); }
-
-function fecharModal() { 
-    modalServico.classList.remove('active'); 
-    inputNomeServico.value = ''; 
-    inputPrecoServico.value = ''; 
-    servicoEditandoId = null; 
-}
-
-window.abrirModalEditar = function(id, nome, preco) {
-    servicoEditandoId = id; 
-    modalTitle.innerText = "Editar Serviço";
-    inputNomeServico.value = nome; 
-    inputPrecoServico.value = preco.toFixed(2).replace('.', ',');
-    abrirModal();
-};
-
-if (btnAddServico) { 
-    btnAddServico.addEventListener('click', function() { 
-        servicoEditandoId = null; 
-        modalTitle.innerText = "Adicionar Novo Serviço"; 
-        abrirModal(); 
-    }); 
-}
-
-if (btnCancelarModal) btnCancelarModal.addEventListener('click', fecharModal);
-if (btnSalvarModal) {
-    const cloneBtnSalvar = btnSalvarModal.cloneNode(true);
-    btnSalvarModal.parentNode.replaceChild(cloneBtnSalvar, btnSalvarModal);
-    
-    cloneBtnSalvar.addEventListener('click', async function() {
-        const nome = inputNomeServico.value.trim(); 
-        const precoText = inputPrecoServico.value.trim().replace(',', '.'); 
-        const preco = parseFloat(precoText);
-
-        if (!nome || isNaN(preco)) return mostrarNotificacao("Preencha o nome e um preço válido.", "erro");
-
+// Serviços
+if (document.getElementById('grid-servicos-container')) {
+    window.carregarServicos = async () => {
+        const grid = document.getElementById('grid-servicos-container');
         try {
-    
-            const respostaChecagem = await fetch(API_SERVICOS);
-            const listaAtual = await respostaChecagem.json();
-            const servicoDuplicado = listaAtual.find(s => s.nome.toLowerCase() === nome.toLowerCase());
-
-            if (servicoDuplicado && !servicoEditandoId) {
-                return mostrarNotificacao(`O serviço "${nome}" já existe no sistema!`, "erro");
-            }
-        } catch (e) {
-            console.error("Erro ao checar duplicatas:", e);
-        }
-
-        const metodoHttp = servicoEditandoId ? "PUT" : "POST";
-        const urlDestino = servicoEditandoId ? `${API_SERVICOS}${servicoEditandoId}` : API_SERVICOS;
-
-        try {
-            const resposta = await fetch(urlDestino, {
-                method: metodoHttp,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome: nome, preco: preco, descricao: "Sem descrição" })
-            });
-
-            if (resposta.ok) {
-                mostrarNotificacao(servicoEditandoId ? "Serviço atualizado!" : "Serviço criado!");
-                carregarServicos(); 
-                fecharModal();
-            } else {
-                mostrarNotificacao("Erro ao salvar no banco.", "erro");
-            }
-        } catch (erro) {
-            console.error(erro);
-            mostrarNotificacao("Erro de conexão com o banco.", "erro");
-        }
-    });
-}
-
-window.prepararRemoverServico = function(id) { 
-    idParaRemover = id; 
-    modalConfirmacao.classList.add('active'); 
-};
-
-function fecharModalConfirmacao() { 
-    if(modalConfirmacao) modalConfirmacao.classList.remove('active'); 
-    idParaRemover = null; 
-}
-
-if(btnCancelarExclusao) btnCancelarExclusao.addEventListener('click', fecharModalConfirmacao);
-
-if(btnConfirmarExclusao) {
-    const cloneBtnConfirmar = btnConfirmarExclusao.cloneNode(true);
-    btnConfirmarExclusao.parentNode.replaceChild(cloneBtnConfirmar, btnConfirmarExclusao);
-    
-    cloneBtnConfirmar.addEventListener('click', async function() {
-        if (idParaRemover !== null) {
+            const servicos = await (await fetch(API_SERVICOS, {cache:'no-store'})).json();
+            if (!servicos.length) return grid.innerHTML = "<p class='text-muted text-center empty-service'>Nenhum serviço.</p>";
+            grid.innerHTML = servicos.map(s => `<div class="card-servico"><strong class="service-name">${s.nome}</strong><span class="text-primary font-bold text-large">R$ ${s.preco.toFixed(2).replace('.', ',')}</span><div class="card-actions"><button onclick="abrirModalEditar('${s.id}', '${s.nome}', ${s.preco})" class="btn-editar-servico">Editar</button><button onclick="prepararRemoverServico('${s.id}')" class="btn-remover-servico">Remover</button></div></div>`).join('');
+            if(typeof atualizarSelectDashboard === 'function') atualizarSelectDashboard();
+        } catch (e) { grid.innerHTML = "<p class='text-danger text-center w-100'>Erro API.</p>"; }
+    };
+    const modalServ = document.getElementById('modal-servico');
+    const fModalServ = () => { modalServ.classList.remove('active'); document.getElementById('input-nome-servico').value=''; document.getElementById('input-preco-servico').value=''; servicoEditandoId=null; };
+    window.abrirModalEditar = (id, nome, preco) => { servicoEditandoId = id; document.getElementById('modal-title').innerText = "Editar"; document.getElementById('input-nome-servico').value = nome; document.getElementById('input-preco-servico').value = preco.toFixed(2).replace('.',','); modalServ.classList.add('active'); };
+    document.querySelector('#servicos-page .btn-toggle')?.addEventListener('click', () => { servicoEditandoId=null; document.getElementById('modal-title').innerText="Novo Serviço"; modalServ.classList.add('active'); });
+    document.getElementById('btn-cancelar-modal')?.addEventListener('click', fModalServ);
+    const btnSalvar = document.getElementById('btn-salvar-modal');
+    if (btnSalvar) {
+        btnSalvar.replaceWith(btnSalvar.cloneNode(true));
+        document.getElementById('btn-salvar-modal').addEventListener('click', async () => {
+            const nome = document.getElementById('input-nome-servico').value.trim(), preco = parseFloat(document.getElementById('input-preco-servico').value.replace(',','.'));
+            if (!nome || isNaN(preco)) return mostrarNotificacao("Dados inválidos.", "erro");
             try {
-                const resposta = await fetch(`${API_SERVICOS}${idParaRemover}`, {
-                    method: 'DELETE'
-                });
-
-                if (resposta.ok) {
-                    mostrarNotificacao("Serviço removido com sucesso!");
-                    carregarServicos();
-                    fecharModalConfirmacao();
-                } else {
-                    mostrarNotificacao("Erro ao deletar no banco.", "erro");
-                }
-            } catch (erro) {
-                mostrarNotificacao("Erro de conexão.", "erro");
-            }
-        }
-    });
-}
-carregarServicos();
-
-       //atualizar dashboards e utilidades
-const selectServicoDashboard = document.getElementById('servico');
-async function atualizarSelectDashboard() {
-    if (selectServicoDashboard) {
-        try {
-            const resposta = await fetch("http://localhost:8000/servicos/");
-            const servicosCadastrados = await resposta.json();
-            
-            selectServicoDashboard.innerHTML = '<option value="" disabled selected>Escolha o serviço...</option>';
-            servicosCadastrados.forEach(s => {
-                const option = document.createElement('option');
-                option.value = s.nome;
-                option.textContent = `${s.nome} (R$ ${s.preco.toFixed(2).replace('.', ',')})`;
-                selectServicoDashboard.appendChild(option);
-            });
-        } catch (e) {
-            console.error("Erro ao puxar serviços para o dashboard:", e);
-        }
+                const dup = (await (await fetch(API_SERVICOS, {cache:'no-store'})).json()).find(s => s.nome.toLowerCase() === nome.toLowerCase());
+                if (dup && !servicoEditandoId) return mostrarNotificacao(`O serviço "${nome}" já existe!`, "erro");
+                await fetchWithFallback(servicoEditandoId ? `${API_SERVICOS}${servicoEditandoId}/` : API_SERVICOS, { method: servicoEditandoId ? "PUT" : "POST", headers: {'Content-Type':'application/json'}, body: JSON.stringify({nome, preco, descricao:"-"}) });
+                mostrarNotificacao(servicoEditandoId ? "Atualizado!" : "Criado!"); carregarServicos(); fModalServ();
+            } catch (e) { mostrarNotificacao("Erro ao salvar.", "erro"); }
+        });
     }
-}
-atualizarSelectDashboard();
-const inputTelefone = document.getElementById('telefone');
-if (inputTelefone) {
-    inputTelefone.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, ''); 
-        if (value.length > 11) value = value.substring(0, 11);
-        value = value.replace(/^(\d{2})(\d)/g, '($1) $2'); value = value.replace(/(\d)(\d{4})$/, '$1-$2');    
-        e.target.value = value;
-    });
+    window.prepararRemoverServico = id => { idParaRemover = id; document.getElementById('modal-confirmacao').classList.add('active'); };
+    const fModalConf = () => { document.getElementById('modal-confirmacao').classList.remove('active'); idParaRemover = null; };
+    document.getElementById('btn-cancelar-exclusao')?.addEventListener('click', fModalConf);
+    const btnConfEx = document.getElementById('btn-confirmar-exclusao');
+    if (btnConfEx) {
+        btnConfEx.replaceWith(btnConfEx.cloneNode(true));
+        document.getElementById('btn-confirmar-exclusao').addEventListener('click', async () => {
+            if (!idParaRemover) return;
+            try {
+                for (let ag of (await (await fetch(API_AGENDA, {cache:'no-store'})).json()).filter(a => a.servico_id == idParaRemover)) await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method:'DELETE' });
+                await fetchWithFallback(`${API_SERVICOS}${idParaRemover}/`, { method:'DELETE' });
+                mostrarNotificacao("Removido!"); carregarServicos(); fModalConf();
+            } catch (e) { mostrarNotificacao("Erro.", "erro"); }
+        });
+    }
+    carregarServicos();
 }
 
-function atualizarDashboardCards() {
-    const cardsNumbers = document.querySelectorAll('.dashboard-cards .card .number');
-    const cardProximoCliente = document.querySelector('.dashboard-cards .card .next-client');
-    const cardFaturamento = document.getElementById('faturamento-hoje');
+// Dashboard e lembretes
+window.atualizarSelectDashboard = async () => {
+    const sel = document.getElementById('servico'); if (!sel) return;
+    try { sel.innerHTML = '<option value="" disabled selected>Escolha o serviço...</option>' + (await (await fetch(API_SERVICOS, {cache:'no-store'})).json()).map(s => `<option value="${s.nome}">${s.nome} (R$ ${s.preco.toFixed(2).replace('.',',')})</option>`).join(''); } catch (e) { sel.innerHTML = '<option disabled>Erro</option>'; }
+};
 
-    if (cardsNumbers.length > 0 && cardProximoCliente) {
-        let agendamentos = JSON.parse(localStorage.getItem('agendamentos_barbearia')) || [];
+window.atualizarDashboardCards = async () => {
+    const cardsN = document.querySelectorAll('.dashboard-cards .card .number'), cardProx = document.querySelector('.dashboard-cards .card .next-client');
+    if (!cardsN.length || !cardProx) return;
+    try {
+        const { agendamentos, clientes, servicos } = await fetchAllData();
+        const hj = new Date(), hjMins = hj.getHours()*60 + hj.getMinutes(), agHj = agendamentos.filter(a => a.data_hora?.includes(formatDataFiltro(hj)));
+        cardsN[0].innerText = agHj.filter(a => parseStatus(a.status).status !== 'faltou').length;
+        let fat = 0; agHj.filter(a => ['concluido','resgatado'].includes(parseStatus(a.status).status)).forEach(ag => { const s = servicos.find(x => x.id == ag.servico_id); if (s?.preco) fat += parseFloat(s.preco); });
+        const cFat = document.getElementById('faturamento-hoje'); if (cFat) cFat.innerText = `R$ ${fat.toFixed(2).replace('.',',')}`;
+        const pendentes = agHj.filter(a => parseStatus(a.status).status === 'pendente').sort((a,b) => a.data_hora.localeCompare(b.data_hora));
+        const prox = pendentes.find(ag => { if(!ag.data_hora.includes('T')) return true; const [h,m] = ag.data_hora.split('T')[1].substring(0,5).split(':').map(Number); return (h*60+m) >= hjMins - 15; });
+        cardProx.innerText = prox ? `${(clientes.find(c => c.id == prox.cliente_id))?.nome||'Cliente'} (${prox.data_hora.includes('T') ? prox.data_hora.split('T')[1].substring(0,5) : '--:--'})` : "Agenda Livre";
+    } catch (e) { console.error(e); }
+};
+
+const lembretesEnviados = new Set();
+const verificarLembretes = async () => {
+    try {
+        const [ags, clis] = await Promise.all([ (await fetch(API_AGENDA,{cache:'no-store'})).json(), (await fetch(API_CLIENTES,{cache:'no-store'})).json() ]);
         const agora = new Date();
-        const diaAtual = String(agora.getDate()).padStart(2, '0') + '/' + String(agora.getMonth() + 1).padStart(2, '0') + '/' + agora.getFullYear();
-        const horaAtual = String(agora.getHours()).padStart(2, '0') + ':' + String(agora.getMinutes()).padStart(2, '0');
+        ags.forEach(ag => {
+            const { status, prof } = parseStatus(ag.status);
+            if (status !== 'pendente' || !ag.data_hora) return;
+            const dAg = new Date(ag.data_hora), diff = (dAg - agora) / 3600000;
+            if (diff > 0 && diff <= 2 && !lembretesEnviados.has(ag.id)) {
+                const cli = clis.find(c => c.id == ag.cliente_id) || { nome:'Cliente', telefone:'' };
+                const hr = dAg.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                const msg = `Olá, tudo bem, ${cli.nome}? Hoje às ${hr} você tem um corte com o barbeiro ${prof}! Até logo!`;
+                mostrarNotificacao(`🕒 Lembrete: ${cli.nome} com ${prof} às ${hr}. <br><br><a href="${gerarLinkWhatsApp(cli.telefone,msg)}" target="_blank" onclick="fecharNotificacao()" class="toast-link">ENVIAR WHATSAPP</a>`, 'erro');
+                lembretesEnviados.add(ag.id);
+            }
+        });
+    } catch (e) {}
+};
 
-        let agendamentosHoje = agendamentos.filter(a => a.data === diaAtual || !a.data);
-        cardsNumbers[0].innerText = agendamentosHoje.filter(a => a.status !== 'faltou').length;
-
-        if (cardFaturamento) {
-            let totalFaturamento = 0;
-            agendamentosHoje.forEach(ag => {
-                if (ag.status !== 'faltou') {
-                    const match = ag.servico.match(/R\$\s*(\d+(?:,\d{2})?)/);
-                    if (match) totalFaturamento += parseFloat(match[1].replace(',', '.'));
-                }
-            });
-            cardFaturamento.innerText = `R$ ${totalFaturamento.toFixed(2).replace('.', ',')}`;
-        }
-
-        if (agendamentosHoje.length > 0) {
-            agendamentosHoje.sort((a, b) => a.hora.localeCompare(b.hora));
-            const proximo = agendamentosHoje.find(ag => ag.hora >= horaAtual && (!ag.status || ag.status === 'pendente'));
-            cardProximoCliente.innerText = proximo ? `${proximo.nome} (${proximo.hora})` : "Sem mais clientes pendentes"; 
-        } else {
-            cardProximoCliente.innerText = "Agenda Livre"; 
-        }
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById('dashboard-page')) {
+        window.atualizarSelectDashboard(); window.atualizarDashboardCards();
+        setTimeout(verificarLembretes, 1000); setInterval(verificarLembretes, 300000);
     }
-}
-atualizarDashboardCards();
-
-function verificarLembretesUrgentes() {
-    let agendamentos = JSON.parse(localStorage.getItem('agendamentos_barbearia')) || [];
-    const agora = new Date();
-    let teveAlteracao = false;
-
-    agendamentos.forEach(ag => {
-        if (ag.status === 'faltou' || ag.status === 'concluido') return;
-        const dataAg = ag.data || ""; if (!dataAg.includes('/')) return;
-        const [dia, mes, ano] = dataAg.split('/'); const [horas, mins] = ag.hora.split(':');
-        const dataAgendamento = new Date(ano, mes - 1, dia, horas, mins);
-        const diffHoras = (dataAgendamento - agora) / (1000 * 60 * 60);
-
-        if (diffHoras > 0 && diffHoras <= 6 && !ag.lembreteMostrado) {
-            const msg = `Olá ${ag.nome}, confirmamos o seu horário na Dom Barbershop daqui a pouco, às ${ag.hora}. Até já!`;
-            const link = typeof gerarLinkWhatsApp === 'function' ? gerarLinkWhatsApp(ag.telefone, msg) : '#';
-            mostrarNotificacao(`🕒 <strong>Lembrete Urgente:</strong> ${ag.nome} às ${ag.hora}. <br><a href="${link}" target="_blank" onclick="fecharNotificacao()" style="color: #fff; text-decoration: underline; font-weight: bold;">ENVIAR WHATSAPP</a>`, 'erro');
-            ag.lembreteMostrado = true; teveAlteracao = true;
-        }
-    });
-    if (teveAlteracao) localStorage.setItem('agendamentos_barbearia', JSON.stringify(agendamentos));
-}
-
-if (document.getElementById('dashboard-page')) {
-    setTimeout(verificarLembretesUrgentes, 1000);
-    setInterval(verificarLembretesUrgentes, 300000);
-}
+});

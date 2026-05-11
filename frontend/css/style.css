@@ -862,7 +862,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     background-color: var(--danger-color);
 }
 
-/* BOTÃO FECHAR DA NOTIFICAÇÃO  */
+/* BOTÃO FECHAR DA NOTIFICAÇÃO */
 .toast-close {
     background: transparent;
     border: none;
@@ -880,3 +880,178 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .toast-close:hover {
     opacity: 1;
 }
+
+.text-muted { color: var(--text-muted); }
+.text-primary { color: var(--primary-color); }
+.text-success { color: var(--success-color) !important; }
+.text-danger { color: var(--danger-color) !important; }
+.text-center { text-align: center; }
+.text-large { font-size: 1.1rem; color: var(--text-color); }
+.font-bold { font-weight: bold; }
+.mb-10 { margin-bottom: 10px; }
+.mb-15 { margin-bottom: 15px; }
+.mb-25 { margin-bottom: 25px; }
+.w-100 { width: 100%; }
+
+/* DASHBOARD */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.input-group.half-width {
+    width: 50%;
+}
+
+/* AGENDA */
+.agenda-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    background: var(--bg-card);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+.datepicker-container {
+    text-align: center;
+    cursor: pointer;
+}
+.display-data {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+.btn-toggle.btn-small {
+    padding: 5px 15px;
+}
+
+/* PERFIL DO CLIENTE */
+.perfil-info-box {
+    background: var(--bg-body);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+}
+.perfil-cortes-row {
+    font-size: 1.2rem;
+    margin-top: 15px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+.status-agendamento-box {
+    background: var(--bg-body);
+    border: 1px solid var(--primary-color);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* MODAIS E CAIXAS */
+.modal-content.large { max-width: 450px; }
+.modal-content.center-small {
+    max-width: 400px;
+    text-align: center;
+}
+.modal-title-primary {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+.modal-title-danger {
+    color: var(--danger-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+/* BOTÕES BLINDADOS E GRUPOS */
+.modal-actions.col {
+    flex-direction: column;
+    gap: 10px;
+}
+.modal-btn-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+.modal-btn-group-spaced {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    width: 100%;
+}
+.btn-grid-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.btn-flex { 
+    flex: 1; 
+}
+.btn-success {
+    background-color: var(--success-color) !important;
+    color: white !important;
+    border: none;
+}
+.btn-danger {
+    background-color: var(--danger-color) !important;
+    color: white !important;
+    border: none;
+}
+.btn-danger-alt {
+    height: 45px;
+    border-radius: 8px;
+}
+.btn-grid {
+    width: 100%;
+    padding: 12px 5px;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.btn-half {
+    width: 50%;
+    padding: 12px 0;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-sizing: border-box;
+}
+.btn-outline {
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+    color: var(--text-color);
+}
+
+/* CLASSES DINÂMICAS DO JAVASCRIPT */
+
+/* Notificações (Toast) */
+.toast-icon { font-size: 1.5rem; line-height: 1; }
+.toast-message { flex: 1; }
+.toast-link { color: #fff; text-decoration: underline; font-weight: bold; font-size: 1.1rem; }
+
+/* Estrutura e Espaçamentos */
+.p-20 { padding: 20px; }
+.empty-service { padding: 40px; grid-column: 1 / -1; }
+.service-name { font-size: 1.3rem; margin-bottom: 8px; display: block; }
+.flex-between-center { display: flex; justify-content: space-between; align-items: center; }
+.btn-icon { background: none; border: none; cursor: pointer; }
+
+/* Status da Agenda */
+.status-concluido { opacity: 0.7; }
+.border-concluido { border-left: 4px solid var(--success-color); }
+
+.status-faltou { opacity: 0.6; }
+.border-faltou { border-left: 4px solid var(--danger-color); }
+
+.status-resgatado { opacity: 0.7; }
+.border-resgatado { border-left: 4px solid #f39c12; }
+.text-warning { color: #f39c12 !important; }
