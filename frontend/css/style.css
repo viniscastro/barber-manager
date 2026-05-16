@@ -1,18 +1,17 @@
 /* VARIÁVEIS */
 
 :root {
-    --primary-color: #d4af37;       /* Dourado */
-    --secondary-color: #1a1a1a;     /* Preto secundário */
-    --bg-body: #121212;             /* Fundo principal bem escuro */
-    --sidebar-bg: #1e1e1e;          /* Fundo do menu e dos cards */
-    --text-color: #f4f4f4;          /* Branco gelo */
-    --text-muted: #a0a0a0;          /* Cinza para textos secundários */
-    --danger-color: #8b0000;        /* Vermelho escuro */
-    --success-color: #2e8b57;       /* Verde suave */
-    --border-color: #333333;        /* Cor das linhas divisórias */
+    --primary-color: #d4af37;       
+    --secondary-color: #1a1a1a;     
+    --bg-body: #121212;             
+    --sidebar-bg: #1e1e1e;          
+    --text-color: #f4f4f4;         
+    --text-muted: #a0a0a0;          
+    --danger-color: #8b0000;       
+    --success-color: #2e8b57;       
+    --border-color: #333333;        
 }
 
-/* RESET E CONFIGURAÇÕES GLOBAIS */
 * {
     margin: 0;
     padding: 0;
@@ -277,12 +276,12 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 }
 
 .btn-submit:hover {
-    transform: translateY(-3px); /* Efeito do botão "levantando" */
-    background-color: #e5c158; /* Um dourado levemente mais claro ao passar o mouse */
+    transform: translateY(-3px);
+    background-color: #e5c158; 
     box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
 }
 
-/* CUSTOMIZAÇÃO FLATPICKR - PINTANDO DO ZERO */
+/* CUSTOMIZAÇÃO FLATPICKR */
 
 /* Fundo Principal e Borda */
 .flatpickr-calendar {
@@ -291,7 +290,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
 }
 
-/* Força os fundos internos a ficarem transparentes para mostrar o fundo principal */
+
 .flatpickr-days,
 .flatpickr-month,
 .flatpickr-weekdays,
@@ -776,9 +775,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 /* Forçar tamanho idêntico */
 .btn-editar-servico, .btn-remover-servico {
     flex: 1;
-    height: 36px; /* Força a altura exata para os dois botões */
-    margin: 0 !important; /* Corta qualquer margem antiga que tenha sobrado */
-    padding: 0 !important; /* Corta paddings antigos que causam diferença */
+    height: 36px;
+    margin: 0 !important; 
+    padding: 0 !important; 
     background: transparent;
     border-radius: 5px;
     cursor: pointer;
@@ -1038,7 +1037,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .toast-message { flex: 1; }
 .toast-link { color: #fff; text-decoration: underline; font-weight: bold; font-size: 1.1rem; }
 
-/* Estrutura e Espaçamentos */
 .p-20 { padding: 20px; }
 .empty-service { padding: 40px; grid-column: 1 / -1; }
 .service-name { font-size: 1.3rem; margin-bottom: 8px; display: block; }

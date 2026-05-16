@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barber Manager</title>
+    <link rel="icon" type="image/png" href="icon.png?v=2" sizes="32x32">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap');
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #121212; 
+            background-image: url('imagembarber.png'); 
+            background-size: cover; 
+            background-position: center; 
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: flex-end; 
+            align-items: center;
+            overflow: hidden; 
+        }
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40%; 
+            height: 100%;
+            background: linear-gradient(to right, rgba(18, 18, 18, 0) 0%, rgba(18, 18, 18, 0.8) 100%);
+            z-index: 1; 
+        }
+        .login-container {
+            background-color: transparent; 
+            box-shadow: none; 
+            padding: 50px;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            margin-right: 5%; 
+            position: relative;
+            z-index: 2; 
+        }
+        .card-header {
+            margin-bottom: 30px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .barber-logo {
+            width: 280px; 
+            max-width: 100%;
+            height: auto;
+            display: block;
+            z-index: 2;
+        }
+        .form-title {
+            font-size: 32px;
+            margin-top: 0;
+            margin-bottom: 30px;
+            color: #d4af37; 
+            font-family: 'Playfair Display', serif; 
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .input-group label {
+            color: #d4af37; 
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 13px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 10px;
+            margin-left: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid #333;
+            border-radius: 30px; 
+            background-color: rgba(42, 42, 42, 0.8);
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .input-group input:focus {
+            border-color: #d4af37; 
+            background-color: rgba(20, 20, 20, 0.9);
+            outline: none;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+        
+        /* NOVO: Estilo do link de recuperar senha */
+        .forgot-password {
+            display: block;
+            text-align: right;
+            margin-top: 10px;
+            margin-right: 10px; /* Alinha certinho com o final do input redondo */
+            color: #a0a0a0;
+            font-size: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        .forgot-password:hover {
+            color: #d4af37; 
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background-color: #d4af37; 
+            color: #121212; 
+            border: none;
+            border-radius: 30px; 
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.1s, box-shadow 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #b5952f; 
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
+        }
+        button:active {
+            transform: scale(0.98); 
+        }
+
+        #mensagem-erro {
+            color: #ff4c4c;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="card-header">
+            <img src="logo_barber.png" class="barber-logo" alt="Dom Barbershop - Barber Manager">
+        </div>
+        
+        <div class="input-group">
+            <label for="usuario">Usuário</label>
+            <input type="text" id="usuario" placeholder="Digite seu usuário">
+        </div>
+        
+        <div class="input-group">
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" placeholder="Digite sua senha">
+            <a href="#" class="forgot-password" onclick="simularRecuperacao()">Esqueceu a senha?</a>
+        </div>
+
+        <button onclick="validarLogin()">Entrar</button>
+        
+        <div id="mensagem-erro">Credenciais inválidas! Tente novamente.</div>
+    </div>
+
+    <script>
+        function validarLogin() {
+            const user = document.getElementById('usuario').value;
+            const pass = document.getElementById('senha').value;
+            const erro = document.getElementById('mensagem-erro');
+
+            if (user === 'admin' && pass === '123') {
+                erro.style.display = 'none';
+                window.location.href = 'dashboard.html'; 
+            } else {
+                erro.style.display = 'block';
+            }
+        }
+
+        // NOVO: Função que cria o alerta profissional de recuperação de senha
+        function simularRecuperacao() {
+            alert("Sistema de Segurança Barber Manager:\n\nUm link seguro para redefinição de senha foi enviado para o e-mail cadastrado do administrador.");
+        }
+    </script>
+
+</body>
+</html>
