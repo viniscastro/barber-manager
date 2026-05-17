@@ -98,24 +98,31 @@ O sistema cobre integralmente as 4 operações de persistência (Criação, Leit
 
 ---
 
+Markdown
 ## 🧪 Teste Prático de Resiliência (Auto-Healing)
-O sistema foi desenhado para tolerar falhas. O ecossistema possui a diretiva restart: always em todos os serviços. Para simular um crash interno e validar a autorrecuperação automatizada, execute a sequência de passos abaixo:
 
-Bash
-# 1. Acesse o terminal interativo do contêiner da API de agendamentos (exemplo):
-docker exec -it agendamentos_api sh        
+O sistema foi desenhado para tolerar falhas. O ecossistema possui a diretiva `restart: always` em todos os serviços. Para simular um crash interno e validar a autorrecuperação automatizada, execute a sequência de passos abaixo:
 
-# 2. Já dentro do ambiente isolado do contêiner, force a finalização do processo principal (PID 1):
+**1. Acesse o terminal interativo do contêiner da API de agendamentos:**
+
+```bash
+docker exec -it agendamentos_api sh
+```
+
+**2. Já dentro do ambiente isolado do contêiner, force a finalização do processo principal (PID 1):**
+
+```Bash
 kill 1
+```
+**3. A conexão cairá. No seu terminal principal, verifique que o Docker reiniciou a API automaticamente:**
 
-# 3. A conexão cairá. No seu terminal principal, verifique que o Docker reiniciou a API automaticamente:
+```Bash
 docker ps
-Resultado Esperado: O painel mostrará que o contêiner agendamentos_api possui o status Up 1 second ou Up 2 seconds, comprovando em tempo real que o Docker detectou a morte do processo e subiu uma nova instância limpa de forma totalmente autônoma, mantendo a aplicação viva.
----
+```
+
+**Resultado Esperado: O painel mostrará que o contêiner agendamentos_api possui o status Up 1 second ou Up 2 seconds, comprovando em tempo real que o Docker detectou a morte do processo e subiu uma nova instância limpa de forma totalmente autônoma, mantendo a aplicação viva.**
 
 ## 👥 Desenvolvedores
 
 * **Arthur** - Arquitetura Backend, Docker, Bancos de Dados.
 * **Vinícius** - Desenvolvimento Frontend, Integração de APIs e UI/UX.
-
-> *Repositório acadêmico com histórico de commits incrementais, refletindo a evolução do desenvolvimento ao longo da unidade.*
