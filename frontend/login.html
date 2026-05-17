@@ -97,22 +97,6 @@
             outline: none;
             box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
         }
-        
-        /* NOVO: Estilo do link de recuperar senha */
-        .forgot-password {
-            display: block;
-            text-align: right;
-            margin-top: 10px;
-            margin-right: 10px; /* Alinha certinho com o final do input redondo */
-            color: #a0a0a0;
-            font-size: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-        .forgot-password:hover {
-            color: #d4af37; 
-        }
 
         button {
             width: 100%;
@@ -155,39 +139,32 @@
         </div>
         
         <div class="input-group">
-            <label for="usuario">Usuário</label>
-            <input type="text" id="usuario" placeholder="Digite seu usuário">
-        </div>
-        
-        <div class="input-group">
-            <label for="senha">Senha</label>
-            <input type="password" id="senha" placeholder="Digite sua senha">
-            <a href="#" class="forgot-password" onclick="simularRecuperacao()">Esqueceu a senha?</a>
+            <label for="usuario">Nome do Atendente</label>
+            <input type="text" id="usuario" placeholder="Digite seu nome para entrar">
         </div>
 
-        <button onclick="validarLogin()">Entrar</button>
+        <button onclick="acessarSistema()">Acessar Sistema</button>
         
-        <div id="mensagem-erro">Credenciais inválidas! Tente novamente.</div>
+        <div id="mensagem-erro">Por favor, insira o seu nome para acessar o sistema.</div>
     </div>
 
     <script>
-        function validarLogin() {
-            const user = document.getElementById('usuario').value;
-            const pass = document.getElementById('senha').value;
+        function acessarSistema() {
+            const user = document.getElementById('usuario').value.trim();
             const erro = document.getElementById('mensagem-erro');
 
-            if (user === 'admin' && pass === '123') {
+            if (user !== '') {
                 erro.style.display = 'none';
                 window.location.href = 'dashboard.html'; 
             } else {
                 erro.style.display = 'block';
             }
         }
-
-        // NOVO: Função que cria o alerta profissional de recuperação de senha
-        function simularRecuperacao() {
-            alert("Sistema de Segurança Barber Manager:\n\nUm link seguro para redefinição de senha foi enviado para o e-mail cadastrado do administrador.");
-        }
+        document.getElementById('usuario').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                acessarSistema();
+            }
+        });
     </script>
 
 </body>

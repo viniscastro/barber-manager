@@ -566,7 +566,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 
 #busca-cliente:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15); /* Brilho dourado ao clicar */
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
 }
 
 #busca-cliente::placeholder {

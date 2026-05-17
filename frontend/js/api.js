@@ -26,9 +26,9 @@ const API = {
         if (!res.ok) throw new Error("Erro ao criar cliente");
         return res.json();
     },
-
-    atualizarCliente: async (id, dados) => {
-        const res = await fetch(`${API_CLIENTES}${id}`, {
+    
+        atualizarCliente: async (id, dados) => {
+        const res = await fetch(`${API_BASE.clientes}${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dados)

@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const formAgendamento = document.getElementById('agendamento-form');
     const inputTelefone = document.getElementById('telefone');
 
-    // Máscara automática do whatsapp
     if (inputTelefone) {
         inputTelefone.addEventListener('input', function (e) {
             let valor = e.target.value.replace(/\D/g, ''); 
@@ -20,6 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const nome = document.getElementById('nome').value.trim();
             const telefone = inputTelefone.value.replace(/\D/g, ''); 
+            const inputEmail = document.getElementById('email');
+            const email = inputEmail ? inputEmail.value.trim() : '';
+
             const dataHoraRaw = document.getElementById('data-hora').value; 
             const servicoValue = document.getElementById('servico').value; 
             
@@ -57,8 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (servEncontrado) { servicoIdFinal = servEncontrado.id; } 
                     else { mostrarNotificacao("Erro: Serviço não encontrado.", "erro"); return; }
                 }
-
-                // Trava com o truque de cortar o status
                 const resAgendaCheck = await fetch(API_AGENDA, { cache: 'no-store' });
                 const agendaAtual = await resAgendaCheck.json();
                 
@@ -68,8 +68,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const barbeiroOcupado = agendaAtual.find(ag => {
                     if (!ag.data_hora) return false;
                     const agDataAparada = ag.data_hora.substring(0, 16); 
-                    
-                    // Puxa o nome do barbeiro no campo de Status
                     const partesStatus = (ag.status || 'pendente|Cassiano').split('|');
                     const agStatus = partesStatus[0].toLowerCase();
                     const agProf = (partesStatus[1] || 'Cassiano').toLowerCase().trim();
@@ -100,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         body: JSON.stringify({ 
                             nome: nome, 
                             telefone: telefone, 
-                            email: `${telefone}@cliente.com`,
+                            email: email !== '' ? email : `${telefone}@cliente.com`,
                             cortes_total: 0,
                             ultima_visita: `${dia}/${mes}/${ano}`
                         })

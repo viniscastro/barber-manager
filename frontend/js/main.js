@@ -1,4 +1,4 @@
-// Calendário e navegação
+// variáveis
 if (document.getElementById("data-hora")) {
     flatpickr("#data-hora", { enableTime: true, dateFormat: "d/m/Y H:i", minDate: "today", time_24hr: true, locale: "pt", minTime: "08:00", maxTime: "20:00", disable: [date => date.getDay() === 0] });
 }
@@ -18,7 +18,6 @@ document.querySelectorAll('.nav-links a').forEach(link => {
     });
 });
 
-// Funções auxiliares e notificações
 window.fecharNotificacao = () => {
     const toast = document.getElementById('custom-toast');
     if (toast) { toast.classList.remove('show'); clearTimeout(toast.hideTimeout); }
@@ -40,8 +39,6 @@ function gerarLinkWhatsApp(telefone, mensagem) {
     if (num.length === 10 || num.length === 11) num = '55' + num;
     return `https://wa.me/${num}?text=${encodeURIComponent(mensagem)}`;
 }
-
-// Utilitários de API e dados
 const API_AGENDA = "http://localhost:8002/agendamentos/";
 const API_CLIENTES = "http://localhost:8001/clientes/";
 const API_SERVICOS = "http://localhost:8000/servicos/";
@@ -95,7 +92,6 @@ if (document.getElementById('tabela-agenda-body')) {
             tabela.innerHTML = ''; timeline.innerHTML = '';
             
             if (agDia.length === 0) {
-                // REFATORADO: Uso das classes text-muted, text-center e p-20
                 timeline.innerHTML = '<p class="text-muted text-center p-20">Nenhum agendamento.</p>';
                 tabela.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhum agendamento.</td></tr>';
                 return;
