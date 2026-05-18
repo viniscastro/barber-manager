@@ -98,7 +98,6 @@ O sistema cobre integralmente as 4 operações de persistência (Criação, Leit
 
 ---
 
-Markdown
 ## 🧪 Teste Prático de Resiliência (Auto-Healing)
 
 O sistema foi desenhado para tolerar falhas. O ecossistema possui a diretiva `restart: always` em todos os serviços. Para simular um crash interno e validar a autorrecuperação automatizada, execute a sequência de passos abaixo:
