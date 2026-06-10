@@ -1053,3 +1053,123 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .status-resgatado { opacity: 0.7; }
 .border-resgatado { border-left: 4px solid #f39c12; }
 .text-warning { color: #f39c12 !important; }
+
+.btn-logout {
+    background-color: transparent;
+    color: #e5c07b; /* Dourado */
+    border: 1px solid #e5c07b;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+.btn-logout:hover {
+    background-color: #e03131;
+    color: white;
+    border-color: #e03131;
+}
+
+.welcome-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.welcome-text {
+    color: #ffffff;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+#nome-usuario-logado {
+    color: #e5c07b;
+    font-weight: bold;
+}
+
+.btn-logout {
+    background-color: transparent;
+    color: #e03131;
+    border: 1px solid #e03131;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+    background-color: #e03131;
+    color: white;
+}
+
+.welcome-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.welcome-text {
+    color: #ffffff;
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+#nome-usuario-logado {
+    color: #e5c07b;
+    font-weight: bold;
+}
+
+.btn-logout {
+    background-color: transparent;
+    color: #e03131;
+    border: 1px solid #e03131;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-logout:hover {
+    background-color: #e03131;
+    color: white;
+}
+
+.btn-apagar {
+    background-color: transparent;
+    color: #e03131;
+    border: 1px solid #e03131;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-apagar:hover {
+    background-color: #e03131;
+    color: white;
+    box-shadow: 0 4px 8px rgba(224, 49, 49, 0.3);
+}
+
+.btn-perfil {
+    background-color: transparent;
+    color: #e5c07b;
+    border: 1px solid #e5c07b;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-perfil:hover {
+    background-color: #e5c07b;
+    color: #121212;
+    box-shadow: 0 4px 8px rgba(229, 192, 123, 0.3);
+}

@@ -3,133 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barber Manager</title>
+    <title>Dom Barbershop | Login</title>
     <link rel="icon" type="image/png" href="icon.png?v=2" sizes="32x32">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@700&display=swap');
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: #121212; 
-            background-image: url('imagembarber.png'); 
-            background-size: cover; 
-            background-position: center; 
-            margin: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: flex-end; 
-            align-items: center;
-            overflow: hidden; 
-        }
-        body::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 40%; 
-            height: 100%;
-            background: linear-gradient(to right, rgba(18, 18, 18, 0) 0%, rgba(18, 18, 18, 0.8) 100%);
-            z-index: 1; 
-        }
-        .login-container {
-            background-color: transparent; 
-            box-shadow: none; 
-            padding: 50px;
-            width: 100%;
-            max-width: 350px;
-            text-align: center;
-            margin-right: 5%; 
-            position: relative;
-            z-index: 2; 
-        }
-        .card-header {
-            margin-bottom: 30px;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .barber-logo {
-            width: 280px; 
-            max-width: 100%;
-            height: auto;
-            display: block;
-            z-index: 2;
-        }
-        .form-title {
-            font-size: 32px;
-            margin-top: 0;
-            margin-bottom: 30px;
-            color: #d4af37; 
-            font-family: 'Playfair Display', serif; 
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-        .input-group {
-            margin-bottom: 25px;
-            text-align: left;
-        }
-        .input-group label {
-            color: #d4af37; 
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-size: 13px;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 10px;
-            margin-left: 5px;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 15px 20px;
-            border: 1px solid #333;
-            border-radius: 30px; 
-            background-color: rgba(42, 42, 42, 0.8);
-            color: white;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
-        .input-group input:focus {
-            border-color: #d4af37; 
-            background-color: rgba(20, 20, 20, 0.9);
-            outline: none;
-            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
-        }
-
-        button {
-            width: 100%;
-            padding: 16px;
-            background-color: #d4af37; 
-            color: #121212; 
-            border: none;
-            border-radius: 30px; 
-            font-family: 'Montserrat', sans-serif;
-            font-size: 16px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.1s, box-shadow 0.3s;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #b5952f; 
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3);
-        }
-        button:active {
-            transform: scale(0.98); 
-        }
-
-        #mensagem-erro {
-            color: #ff4c4c;
-            margin-top: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            display: none; 
-        }
-    </style>
+    <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
 
@@ -138,34 +14,124 @@
             <img src="logo_barber.png" class="barber-logo" alt="Dom Barbershop - Barber Manager">
         </div>
         
-        <div class="input-group">
-            <label for="usuario">Nome do Atendente</label>
-            <input type="text" id="usuario" placeholder="Digite seu nome para entrar">
+        <div id="form-login" class="auth-form active">
+            <h2 class="form-title">Acesso ao Sistema</h2>
+            <div class="input-group">
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" placeholder="atendente@dombarbershop.com">
+            </div>
+            <div class="input-group">
+                <label for="login-senha">Senha</label>
+                <input type="password" id="login-senha" placeholder="••••••••">
+            </div>
+            <button class="btn-submit" onclick="fazerLogin()">Entrar</button>
+            <div id="msg-login" class="message-alert"></div>
+            <div class="auth-links">
+                <a href="#" onclick="alternarTela('form-forgot')">Esqueceu a sua senha?</a>
+                <a href="#" onclick="alternarTela('form-register')" class="highlight">Não tem conta? <span>Registe-se aqui</span></a>
+            </div>
         </div>
 
-        <button onclick="acessarSistema()">Acessar Sistema</button>
-        
-        <div id="mensagem-erro">Por favor, insira o seu nome para acessar o sistema.</div>
+        <div id="form-register" class="auth-form">
+            <h2 class="form-title">Criar Nova Conta</h2>
+            
+            <div class="input-group">
+                <label for="reg-nome">Primeiro Nome</label>
+                <input type="text" id="reg-nome" placeholder="Ex: Elton">
+            </div>
+            
+            <div class="input-group">
+                <label for="reg-sobrenome">Sobrenome</label>
+                <input type="text" id="reg-sobrenome" placeholder="Ex: Emanuel">
+            </div>
+
+            <div class="input-group">
+                <label for="reg-telefone">Telefone (WhatsApp)</label>
+                <input type="tel" id="reg-telefone" placeholder="(81) 90000-0000" maxlength="15">
+            </div>
+            
+            <div class="input-group">
+                <label for="reg-email">E-mail</label>
+                <input type="email" id="reg-email" placeholder="Seu e-mail">
+            </div>
+
+            <div class="input-group">
+                <label for="reg-senha">Senha</label>
+                <input type="password" id="reg-senha" placeholder="Crie uma senha">
+            </div>
+            
+            <div class="input-group">
+                <label for="reg-senha-confirm">Confirmar Senha</label>
+                <input type="password" id="reg-senha-confirm" placeholder="Repita a senha">
+            </div>
+            
+            <button class="btn-submit" onclick="fazerCadastro()">Registar</button>
+            
+            <div id="msg-register" class="message-alert"></div>
+            <div class="auth-links">
+                <a href="#" onclick="alternarTela('form-login')" class="highlight">Já possui conta? <span>Faça Login</span></a>
+            </div>
+        </div>
+
+        <div id="form-verify-reg" class="auth-form">
+            <h2 class="form-title">Verificar E-mail</h2>
+            <p class="form-subtitle">Enviámos um código de 6 dígitos para o seu e-mail. Insira-o abaixo para validar a conta.</p>
+            <div class="input-group">
+                <label for="verify-reg-code">Código de Verificação</label>
+                <input type="text" id="verify-reg-code" placeholder="123456" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: bold;">
+            </div>
+            <button class="btn-submit" onclick="verificarCodigoRegistro()">Validar Conta</button>
+            <div id="msg-verify-reg" class="message-alert"></div>
+            <div class="auth-links">
+                <a href="#" onclick="alternarTela('form-register')">⬅ Voltar</a>
+            </div>
+        </div>
+
+        <div id="form-forgot" class="auth-form">
+            <h2 class="form-title">Recuperar Senha</h2>
+            <p class="form-subtitle">Introduza o seu e-mail de registo. Enviaremos as instruções para redefinir a sua senha.</p>
+            <div class="input-group">
+                <label for="forgot-email">E-mail de Registo</label>
+                <input type="email" id="forgot-email" placeholder="atendente@dombarbershop.com">
+            </div>
+            <button class="btn-submit" onclick="recuperarSenha()">Enviar Instruções</button>
+            <div id="msg-forgot" class="message-alert"></div>
+            <div class="auth-links">
+                <a href="#" onclick="alternarTela('form-login')">⬅ Voltar para o Login</a>
+            </div>
+        </div>
+
+        <div id="form-verify-forgot" class="auth-form">
+            <h2 class="form-title">Código de Segurança</h2>
+            <p class="form-subtitle">Introduza o código de 6 dígitos que enviámos para o seu e-mail.</p>
+            <div class="input-group">
+                <label for="verify-forgot-code">Código de Recuperação</label>
+                <input type="text" id="verify-forgot-code" placeholder="123456" maxlength="6" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; font-weight: bold;">
+            </div>
+            <button class="btn-submit" onclick="verificarCodigoRecuperacao()">Validar Código</button>
+            <div id="msg-verify-forgot" class="message-alert"></div>
+            <div class="auth-links">
+                <a href="#" onclick="alternarTela('form-forgot')">⬅ Voltar</a>
+            </div>
+        </div>
+
+        <div id="form-reset-password" class="auth-form">
+            <h2 class="form-title">Nova Senha</h2>
+            <p class="form-subtitle">Crie uma nova senha segura para a sua conta.</p>
+            <div class="input-group">
+                <label for="reset-senha">Nova Senha</label>
+                <input type="password" id="reset-senha" placeholder="••••••••">
+            </div>
+            <div class="input-group">
+                <label for="reset-senha-confirm">Confirmar Nova Senha</label>
+                <input type="password" id="reset-senha-confirm" placeholder="••••••••">
+            </div>
+            <button class="btn-submit" onclick="redefinirSenha()">Salvar Nova Senha</button>
+            <div id="msg-reset-password" class="message-alert"></div>
+        </div>
+
     </div>
 
-    <script>
-        function acessarSistema() {
-            const user = document.getElementById('usuario').value.trim();
-            const erro = document.getElementById('mensagem-erro');
-
-            if (user !== '') {
-                erro.style.display = 'none';
-                window.location.href = 'dashboard.html'; 
-            } else {
-                erro.style.display = 'block';
-            }
-        }
-        document.getElementById('usuario').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                acessarSistema();
-            }
-        });
-    </script>
-
+    <script src="js/login.js"></script>
 </body>
 </html>

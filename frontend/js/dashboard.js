@@ -1,37 +1,40 @@
+document.addEventListener("DOMContentLoaded", function() {
+    const usuarioLogado = localStorage.getItem('usuario_nome');
+
+    if (!usuarioLogado) {
+        window.location.href = 'login.html';
+        return; 
+    }
+
+    const elementoNome = document.getElementById('nome-usuario-logado');
+    if (elementoNome) {
+        elementoNome.innerText = usuarioLogado;
+    }
+});
+
+function fazerLogout() {
+    localStorage.removeItem('usuario_nome');
+    window.location.href = 'login.html';
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const formAgendamento = document.getElementById('agendamento-form');
-    const inputTelefone = document.getElementById('telefone');
-
-    if (inputTelefone) {
-        inputTelefone.addEventListener('input', function (e) {
-            let valor = e.target.value.replace(/\D/g, ''); 
-            if (valor.length > 11) valor = valor.slice(0, 11); 
-            if (valor.length > 2) valor = `(${valor.substring(0, 2)}) ${valor.substring(2)}`;
-            if (valor.length > 10) valor = `${valor.substring(0, 10)}-${valor.substring(10)}`;
-            else if (valor.length > 9) valor = `${valor.substring(0, 9)}-${valor.substring(9)}`;
-            e.target.value = valor;
-        });
-    }
 
     if (formAgendamento) {
         formAgendamento.addEventListener('submit', async function(e) {
             e.preventDefault(); 
 
-            const nome = document.getElementById('nome').value.trim();
-            const telefone = inputTelefone.value.replace(/\D/g, ''); 
-            const inputEmail = document.getElementById('email');
-            const email = inputEmail ? inputEmail.value.trim() : '';
+            // Puxa o nome do cliente que está logado diretamente da memória
+            const nomeLogado = localStorage.getItem('usuario_nome');
+            if (!nomeLogado) {
+                mostrarNotificacao("Erro de sessão: Faça login novamente.", "erro");
+                return;
+            }
 
             const dataHoraRaw = document.getElementById('data-hora').value; 
             const servicoValue = document.getElementById('servico').value; 
-            
             const selectProfissional = document.getElementById('profissional');
             const profissionalValue = selectProfissional ? selectProfissional.value : 'Cassiano'; 
-
-            if (telefone.length < 10) {
-                mostrarNotificacao("Erro: Digite um telefone válido com DDD.", "erro");
-                return;
-            }
 
             const regexData = /(\d{2,4})\D+(\d{2})\D+(\d{2,4})\D+(\d{2})\D+(\d{2})/;
             const match = dataHoraRaw.match(regexData);
@@ -59,6 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (servEncontrado) { servicoIdFinal = servEncontrado.id; } 
                     else { mostrarNotificacao("Erro: Serviço não encontrado.", "erro"); return; }
                 }
+                
                 const resAgendaCheck = await fetch(API_AGENDA, { cache: 'no-store' });
                 const agendaAtual = await resAgendaCheck.json();
                 
@@ -84,30 +88,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 const resClientes = await fetch(API_CLIENTES, { cache: 'no-store' });
                 const clientes = await resClientes.json();
                 
-                let cliExistente = clientes.find(c => 
-                    (c.telefone && String(c.telefone).replace(/\D/g, '') === telefone) ||
-                    (c.nome && c.nome.trim().toLowerCase() === nome.toLowerCase())
-                );
+                // Procura na tabela o cliente que tem o mesmo nome do login
+                let cliExistente = clientes.find(c => c.nome && c.nome.trim().toLowerCase() === nomeLogado.toLowerCase());
 
                 if (cliExistente) {
                     clienteId = cliExistente.id;
                 } else {
-                    const resNovoCli = await fetch(API_CLIENTES, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            nome: nome, 
-                            telefone: telefone, 
-                            email: email !== '' ? email : `${telefone}@cliente.com`,
-                            cortes_total: 0,
-                            ultima_visita: `${dia}/${mes}/${ano}`
-                        })
-                    });
-                    if (!resNovoCli.ok) throw new Error("Erro ao criar novo cliente.");
-                    const novoCli = await resNovoCli.json();
-                    clienteId = novoCli.id;
+                    mostrarNotificacao("Erro: A sua conta não foi encontrada no banco de dados.", "erro");
+                    return;
                 }
 
+                // Cria o agendamento ligado ao ID do cliente
                 const payload = {
                     cliente_id: clienteId,
                     servico_id: servicoIdFinal,

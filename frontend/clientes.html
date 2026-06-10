@@ -12,31 +12,32 @@
     <nav class="sidebar">
         <a href="index.html" class="logo-link">
             <div class="logo">
-                <h2 class="shop-name">💈Dom Barbershop</h2>
+                <h2 class="shop-name">Dom Barbershop</h2>
                 <span class="system-name">Barber Manager</span>
             </div>
         </a>
         <ul class="nav-links">
-            <li><a href="index.html">🏠 Início</a></li>
-            <li><a href="dashboard.html">📊 Dashboard</a></li>
-            <li><a href="agenda.html">📅 Agenda</a></li>
-            <li><a href="clientes.html" class="active">👥 Clientes</a></li>
-            <li><a href="servicos.html">✂️ Serviços</a></li>
+            <li><a href="index.html">Início</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="agenda.html">Agenda</a></li>
+            <li><a href="clientes.html" class="active">Clientes</a></li>
+            <li><a href="servicos.html">Serviços</a></li>
         </ul>
     </nav>
 
     <main class="main-content">
         <header class="top-header">
             <h1 id="page-title">Clientes</h1>
-            <div class="user-profile">
-                <span>Bem-vindo!</span>
+            
+            <div class="welcome-container">
+                <p class="welcome-text">Seja bem-vindo(a), <span id="nome-usuario-logado">Usuário</span></p>
             </div>
         </header>
 
         <section id="clientes-page" class="active-page">
             <div class="card-lista">
                 <div class="agenda-top-bar">
-                    <h2>👥 Base de Clientes</h2>
+                    <h2>Base de Clientes</h2>
                     <div class="busca-container">
                         <input type="text" id="busca-cliente" placeholder="Procurar por nome ou WhatsApp...">
                     </div>
@@ -62,17 +63,17 @@
                 <h3 id="perfil-nome-cliente">Nome do Cliente</h3>
                 
                 <div class="perfil-info-box">
-                    <p class="mb-10">📱 <strong>WhatsApp:</strong> <span id="perfil-telefone" class="text-muted"></span></p>
-                    <p class="mb-10">📅 <strong>Última Visita:</strong> <span id="perfil-visita" class="text-muted"></span></p>
-                    <p class="mb-10">✂️ <strong>Serviço Favorito:</strong> <span id="perfil-servico" class="text-muted"></span></p>
+                    <p class="mb-10"><strong>WhatsApp:</strong> <span id="perfil-telefone" class="text-muted"></span></p>
+                    <p class="mb-10"><strong>Última Visita:</strong> <span id="perfil-visita" class="text-muted"></span></p>
+                    <p class="mb-10"><strong>Serviço Favorito:</strong> <span id="perfil-servico" class="text-muted"></span></p>
                     <p class="perfil-cortes-row">
-                        🏆 <strong>Cortes Acumulados:</strong> <span id="perfil-cortes" class="text-primary font-bold">0</span>
+                        <strong>Cortes Acumulados:</strong> <span id="perfil-cortes" class="text-primary font-bold">0</span>
                     </p>
                 </div>
                 
                 <div id="modal-confirmacao-premio" class="modal-overlay">
                     <div class="modal-content center-small">
-                        <h3 class="modal-title-primary">🎁 Resgatar Prêmio</h3>
+                        <h3 class="modal-title-primary">Resgatar Prêmio</h3>
                         <p class="modal-text-large">
                             Confirmar o resgate? O sistema irá zerar a contagem de cortes deste cliente.
                         </p>
@@ -86,19 +87,19 @@
                 <div id="status-agendamento-cliente" class="status-agendamento-box" style="display: none;">
                     
                     <p class="text-center mb-15">
-                        🕒 <strong>Agendado para:</strong> <span id="horario-agendamento-cliente" class="text-large text-primary">--:--</span>
+                        <strong>Agendado para:</strong> <span id="horario-agendamento-cliente" class="text-large text-primary">--:--</span>
                     </p>
                     
                     <div class="btn-grid-group">
-                        <button id="btn-confirmar-cliente" class="btn-grid btn-success">✅ Confirmar</button>
-                        <button id="btn-faltou-cliente" class="btn-grid btn-danger">❌ Desmarcar</button>
+                        <button id="btn-confirmar-cliente" class="btn-grid btn-success">Confirmar</button>
+                        <button id="btn-faltou-cliente" class="btn-grid btn-danger">Desmarcar</button>
                     </div>
 
                 </div>
 
                 <div class="modal-actions col">
                     <button id="btn-resgatar-premio" onclick="zerarCortes()" class="btn-submit btn-success w-100" style="display: none;">
-                        🎁 Resgatar Prêmio (Zerar Cortes)
+                        Resgatar Prêmio (Zerar Cortes)
                     </button>
                     
                     <div class="modal-btn-group">
@@ -109,7 +110,7 @@
 
                 <div id="modal-confirmacao-exclusao-cliente" class="modal-overlay">
                     <div class="modal-content center-small">
-                        <h3 class="modal-title-danger">⚠️ Excluir Cliente</h3>
+                        <h3 class="modal-title-danger">Excluir Cliente</h3>
                         <p class="modal-text-large">
                             Tem certeza que deseja excluir <strong>DEFINITIVAMENTE</strong> este cliente e todo o seu histórico do banco de dados?
                         </p>

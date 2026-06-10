@@ -7,6 +7,7 @@ class ClienteBase(BaseModel):
     telefone: Optional[str] = None
 
 class ClienteCreate(ClienteBase):
+    senha: str
     pass
 
 class ClienteResponse(ClienteBase):

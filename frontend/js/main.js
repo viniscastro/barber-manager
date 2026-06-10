@@ -1,3 +1,22 @@
+document.addEventListener("DOMContentLoaded", function() {
+    const usuarioLogado = localStorage.getItem('usuario_nome');
+
+    if (!usuarioLogado && !window.location.href.includes('login.html')) {
+        window.location.href = 'login.html';
+        return; 
+    }
+
+    const elementoNome = document.getElementById('nome-usuario-logado');
+    if (elementoNome && usuarioLogado) {
+        elementoNome.innerText = usuarioLogado;
+    }
+});
+
+function fazerLogout() {
+    localStorage.removeItem('usuario_nome');
+    window.location.href = 'login.html';
+}
+
 // variáveis
 if (document.getElementById("data-hora")) {
     flatpickr("#data-hora", { enableTime: true, dateFormat: "d/m/Y H:i", minDate: "today", time_24hr: true, locale: "pt", minTime: "08:00", maxTime: "20:00", disable: [date => date.getDay() === 0] });
@@ -28,7 +47,7 @@ function mostrarNotificacao(mensagem, tipo = 'sucesso') {
     if (!toast.parentNode) document.body.appendChild(toast);
     clearTimeout(toast.hideTimeout);
     toast.className = `toast-notification ${tipo === 'erro' ? 'error' : ''}`;
-    toast.innerHTML = `<span class="toast-icon">${tipo === 'erro' ? '⚠️' : '✅'}</span> <div class="toast-message">${mensagem}</div><button class="toast-close" onclick="fecharNotificacao()" title="Fechar">&times;</button>`;
+    toast.innerHTML = `<div class="toast-message">${mensagem}</div><button class="toast-close" onclick="fecharNotificacao()" title="Fechar">&times;</button>`;
     setTimeout(() => toast.classList.add('show'), 10);
     toast.hideTimeout = setTimeout(() => toast.classList.remove('show'), tipo === 'erro' ? 8000 : 3000);
 }
@@ -39,6 +58,15 @@ function gerarLinkWhatsApp(telefone, mensagem) {
     if (num.length === 10 || num.length === 11) num = '55' + num;
     return `https://wa.me/${num}?text=${encodeURIComponent(mensagem)}`;
 }
+
+function formatarZapTabela(numero) {
+    if (!numero || numero === "") return "---";
+    let n = String(numero).replace(/\D/g, '');
+    if (n.length === 11) return `(${n.substring(0,2)}) ${n.substring(2,7)}-${n.substring(7,11)}`;
+    if (n.length === 10) return `(${n.substring(0,2)}) ${n.substring(2,6)}-${n.substring(6,10)}`;
+    return numero;
+}
+
 const API_AGENDA = "http://localhost:8002/agendamentos/";
 const API_CLIENTES = "http://localhost:8001/clientes/";
 const API_SERVICOS = "http://localhost:8000/servicos/";
@@ -101,12 +129,12 @@ if (document.getElementById('tabela-agenda-body')) {
                 const cli = clientes.find(c => c.id == ag.cliente_id) || { nome: 'Desconhecido' }, serv = servicos.find(s => s.id == ag.servico_id) || { nome: 'Removido' };
                 const hora = ag.data_hora.split('T')[1].substring(0, 5), { status, prof } = parseStatus(ag.status);
                 let stClass = '', borderClass = '', stText = '';
-                if (status === 'concluido') { stClass = 'status-concluido'; borderClass = 'border-concluido'; stText = '<span class="text-success font-bold">✅ CONCLUÍDO</span>'; }
-                else if (status === 'faltou') { stClass = 'status-faltou'; borderClass = 'border-faltou'; stText = '<span class="text-danger font-bold">❌ FALTOU</span>'; }
+                if (status === 'concluido') { stClass = 'status-concluido'; borderClass = 'border-concluido'; stText = '<span class="text-success font-bold">CONFIRMOU</span>'; }
+                else if (status === 'faltou') { stClass = 'status-faltou'; borderClass = 'border-faltou'; stText = '<span class="text-danger font-bold">DESMARCOU</span>'; }
                 else if (status === 'resgatado') { stClass = 'status-resgatado'; borderClass = 'border-resgatado'; stText = '<span class="text-warning font-bold">🎁 RESGATADO</span>'; }
                 
-                tabela.innerHTML += `<tr class="${stClass}"><td>${hora}</td><td>${cli.nome}<br><small class="text-muted">com ${prof}</small><br>${stText}</td><td>${serv.nome}</td><td><button onclick="abrirModalExclusaoAgenda(${ag.id})" class="btn-icon">🗑️</button></td></tr>`;
-                timeline.innerHTML += `<div class="timeline-slot ${stClass}"><div class="slot-time">${hora}</div><div class="appointment-card ${borderClass}"><div><span class="client-name">${cli.nome}</span> <span class="service-tag">${serv.nome}</span><br><small class="text-muted">Barbeiro: ${prof}</small><br>${stText}</div><button onclick="abrirModalExclusaoAgenda(${ag.id})" class="btn-icon">🗑️</button></div></div>`;
+                tabela.innerHTML += `<tr class="${stClass}"><td>${hora}</td><td>${cli.nome}<br><small class="text-muted">com ${prof}</small><br>${stText}</td><td>${serv.nome}</td><td><button onclick="abrirModalExclusaoAgenda(${ag.id})" class="btn-apagar">Apagar</button></td></tr>`;
+                timeline.innerHTML += `<div class="timeline-slot ${stClass}"><div class="slot-time">${hora}</div><div class="appointment-card ${borderClass}" style="display: flex; justify-content: space-between; align-items: center; width: 100%;"><div><span class="client-name">${cli.nome}</span> <span class="service-tag">${serv.nome}</span><br><small class="text-muted">Barbeiro: ${prof}</small><br>${stText}</div><button onclick="abrirModalExclusaoAgenda(${ag.id})" class="btn-apagar">Apagar</button></div></div>`;
             });
         } catch (e) { console.error(e); }
     };
@@ -159,21 +187,34 @@ if (document.getElementById('tabela-clientes-body')) {
             renderizarTabelaClientes(listaDeClientes);
         } catch (e) { console.error(e); }
     };
+    
     window.renderizarTabelaClientes = (clientes) => {
         const tbody = document.getElementById('tabela-clientes-body');
         if (!clientes.length) return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhum cliente.</td></tr>';
+        
         tbody.innerHTML = clientes.sort((a,b) => (b.cortes_total||0) - (a.cortes_total||0)).map(c => {
             const msg = c.proximo_horario ? `Olá, tudo bem, ${c.nome}? Hoje às ${c.proximo_horario} você tem um corte com o barbeiro ${c.profissionalResp||'nossa equipe'}! Até logo!` : `Olá ${c.nome}, tudo bem? Aqui é da Dom Barbershop!`;
-            return `<tr><td class="font-bold">${c.nome}</td><td><a href="${gerarLinkWhatsApp(c.telefone, msg)}" target="_blank" class="text-success font-bold">💬 ${c.telefone||'---'}</a></td><td>${c.ultima_visita}</td><td><div class="flex-between-center"><span><strong class="text-primary">${c.cortes_total}</strong> cortes</span><button onclick="abrirPerfilCliente(${c.id})" class="btn-icon">✏️</button></div></td></tr>`;
+
+            const telefoneVisual = formatarZapTabela(c.telefone);
+            
+            let linkWhatsApp = "---";
+            if (c.telefone) {
+                linkWhatsApp = `<a href="${gerarLinkWhatsApp(c.telefone, msg)}" target="_blank" style="color: #4CAF50; text-decoration: none; font-weight: bold; transition: 0.3s;" title="Conversar no WhatsApp">
+                                    ${telefoneVisual}
+                                </a>`;
+            }
+
+            return `<tr><td class="font-bold">${c.nome}</td><td>${linkWhatsApp}</td><td>${c.ultima_visita}</td><td><div class="flex-between-center"><span><strong class="text-primary">${c.cortes_total}</strong> cortes</span><button onclick="abrirPerfilCliente(${c.id})" class="btn-perfil">Gerenciar</button></div></td></tr>`;
         }).join('');
     };
+
     document.getElementById('busca-cliente')?.addEventListener('input', e => {
         const t = e.target.value.toLowerCase();
         renderizarTabelaClientes(listaDeClientes.filter(c => c.nome.toLowerCase().includes(t) || c.telefone?.includes(t)));
     });
     window.abrirPerfilCliente = async (id) => {
         const c = listaDeClientes.find(x => x.id == id); if (!c) return;
-        clienteAtivoId = id; document.getElementById('perfil-nome-cliente').innerText = c.nome; document.getElementById('perfil-telefone').innerText = c.telefone || '---'; document.getElementById('perfil-visita').innerText = c.ultima_visita; document.getElementById('perfil-cortes').innerText = c.cortes_total; document.getElementById('btn-resgatar-premio').style.display = c.cortes_total >= 10 ? 'block' : 'none';
+        clienteAtivoId = id; document.getElementById('perfil-nome-cliente').innerText = c.nome; document.getElementById('perfil-telefone').innerText = formatarZapTabela(c.telefone); document.getElementById('perfil-visita').innerText = c.ultima_visita; document.getElementById('perfil-cortes').innerText = c.cortes_total; document.getElementById('btn-resgatar-premio').style.display = c.cortes_total >= 10 ? 'block' : 'none';
         const divAg = document.getElementById('status-agendamento-cliente'); divAg.style.display = 'none';
         try {
             const ags = await (await fetch(API_AGENDA, {cache:'no-store'})).json();
@@ -298,26 +339,51 @@ window.atualizarDashboardCards = async () => {
 const lembretesEnviados = new Set();
 const verificarLembretes = async () => {
     try {
-        const [ags, clis] = await Promise.all([ (await fetch(API_AGENDA,{cache:'no-store'})).json(), (await fetch(API_CLIENTES,{cache:'no-store'})).json() ]);
+        const [ags, clis] = await Promise.all([ 
+            (await fetch(API_AGENDA,{cache:'no-store'})).json(), 
+            (await fetch(API_CLIENTES,{cache:'no-store'})).json() 
+        ]);
         const agora = new Date();
+        
         ags.forEach(ag => {
             const { status, prof } = parseStatus(ag.status);
             if (status !== 'pendente' || !ag.data_hora) return;
-            const dAg = new Date(ag.data_hora), diff = (dAg - agora) / 3600000;
+            
+            const dAg = new Date(ag.data_hora);
+            const diff = (dAg - agora) / 3600000;
+            
             if (diff > 0 && diff <= 2 && !lembretesEnviados.has(ag.id)) {
                 const cli = clis.find(c => c.id == ag.cliente_id) || { nome:'Cliente', telefone:'' };
                 const hr = dAg.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+                
                 const msg = `Olá, tudo bem, ${cli.nome}? Hoje às ${hr} você tem um corte com o barbeiro ${prof}! Até logo!`;
-                mostrarNotificacao(`🕒 Lembrete: ${cli.nome} com ${prof} às ${hr}. <br><br><a href="${gerarLinkWhatsApp(cli.telefone,msg)}" target="_blank" onclick="fecharNotificacao()" class="toast-link">ENVIAR WHATSAPP</a>`, 'erro');
+                const linkWhatsApp = gerarLinkWhatsApp(cli.telefone, msg);
+                
+                window.open(linkWhatsApp, '_blank');
                 lembretesEnviados.add(ag.id);
             }
         });
-    } catch (e) {}
+    } catch (e) {
+        console.error("Erro na verificação de lembretes:", e);
+    }
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById('dashboard-page')) {
-        window.atualizarSelectDashboard(); window.atualizarDashboardCards();
-        setTimeout(verificarLembretes, 1000); setInterval(verificarLembretes, 300000);
+    verificarLembretes();
+
+    setInterval(verificarLembretes, 60000); 
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.getElementById('servico')) {
+        if (typeof atualizarSelectDashboard === 'function') {
+            atualizarSelectDashboard();
+        }
+    }
+    
+    if (document.querySelector('.dashboard-cards')) {
+        if (typeof atualizarDashboardCards === 'function') {
+            atualizarDashboardCards();
+        }
     }
 });
