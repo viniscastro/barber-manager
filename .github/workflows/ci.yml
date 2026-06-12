@@ -1,0 +1,21 @@
+name: Barber Manager CI
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout do código
+      uses: actions/checkout@v3
+
+    - name: Validar sintaxe do Docker Compose
+      run: docker-compose config
+
+    - name: Build das imagens Docker (Teste de Integração)
+      run: docker-compose build
