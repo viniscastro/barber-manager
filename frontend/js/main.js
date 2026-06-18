@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", function() {
+    const accessToken = localStorage.getItem('access_token');
     const usuarioLogado = localStorage.getItem('usuario_nome');
 
-    if (!usuarioLogado && !window.location.href.includes('login.html')) {
+    if (!accessToken && !window.location.href.includes('login.html')) {
         window.location.href = 'login.html';
         return; 
     }
@@ -13,6 +14,8 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function fazerLogout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('usuario_id');
     localStorage.removeItem('usuario_nome');
     window.location.href = 'login.html';
 }
@@ -76,9 +79,25 @@ const parseStatus = (st) => {
     return { status: parts[0].toLowerCase(), prof: parts[1] || 'Cassiano' };
 };
 
-const fetchWithFallback = async (url, options) => {
+const fetchWithFallback = async (url, options = {}) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        options.headers = {
+            ...options.headers,
+            'Authorization': `Bearer ${token}`
+        };
+    }
+
     let res = await fetch(url, options);
+    
     if (!res.ok && res.status !== 200) res = await fetch(url.replace(/\/$/, ''), options);
+    
+    if (res.status === 401) {
+        mostrarNotificacao("A sua sessão expirou. Faça login novamente.", "erro");
+        setTimeout(fazerLogout, 2000);
+        throw new Error(`Sessão expirada`);
+    }
+
     if (!res.ok && res.status !== 200) throw new Error(`API Error: ${res.status}`);
     return res;
 };

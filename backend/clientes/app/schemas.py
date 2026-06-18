@@ -3,15 +3,19 @@ from typing import Optional
 
 class ClienteBase(BaseModel):
     nome: str
-    email: EmailStr
-    telefone: Optional[str] = None
+    email: str
+    telefone: str
+    senha: str
 
 class ClienteCreate(ClienteBase):
     senha: str
     pass
 
-class ClienteResponse(ClienteBase):
+class ClienteResponse(BaseModel):
     id: int
-
+    nome: str
+    email: str
+    telefone: str | None = None
+    
     class Config:
-        from_attributes = True
+        orm_mode = True

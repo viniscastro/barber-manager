@@ -32,8 +32,9 @@ async function fazerLogin() {
     const email = document.getElementById('login-email').value.trim();
     const senha = document.getElementById('login-senha').value.trim();
 
-    if (email === '' || senha === '') return exibirMensagem('msg-login', 'Por favor, preencha o e-mail e a senha.', 'error');
-    exibirMensagem('msg-login', 'Autenticando...', 'success');
+    if (!email || !senha) {
+        return exibirMensagem('msg-login', 'Preencha todos os campos.', 'error'); 
+    }
 
     try {
         const resposta = await fetch('http://127.0.0.1:8001/login/', {
@@ -45,14 +46,16 @@ async function fazerLogin() {
         const dados = await resposta.json();
 
         if (resposta.ok) {
-            exibirMensagem('msg-login', 'Login efetuado com sucesso! Entrando...', 'success');
+            localStorage.setItem('access_token', dados.access_token);
+            localStorage.setItem('usuario_id', dados.usuario.id);
             localStorage.setItem('usuario_nome', dados.usuario.nome);
-            setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+            window.location.href = 'dashboard.html';
         } else {
-            exibirMensagem('msg-login', dados.detail || 'Erro ao realizar login.', 'error');
+            exibirMensagem('msg-login', dados.detail || 'Erro ao fazer login.', 'error');
         }
     } catch (erro) {
-        exibirMensagem('msg-login', 'Erro de conexão com o servidor. O Docker está rodando?', 'error');
+        console.error("Erro no login:", erro);
+        exibirMensagem('msg-login', 'Erro de conexão com o servidor.', 'error');
     }
 }
 

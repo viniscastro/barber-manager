@@ -1,80 +1,73 @@
-import os
-import json
-import redis
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from typing import List
+import jwt
+
 from . import models, schemas, database
 
 models.Base.metadata.create_all(bind=database.engine)
-
-app = FastAPI(title="Barber Manager - API de serviços")
+app = FastAPI(title="Barber Manager - Serviços API")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-redis_url = os.getenv("REDIS_URL", "redis://redis_cache:6379/0")
-redis_client = redis.Redis.from_url(redis_url)
 
-@app.get("/servicos/", response_model=List[schemas.ServicoResponse])
-def listar_servicos(db: Session = Depends(database.get_db)):
-    servicos_em_cache = redis_client.get("servicos_lista")
-    
-    if servicos_em_cache:
-        print("⚡ Buscou do CACHE (Redis)!")
-        return json.loads(servicos_em_cache)
+SECRET_KEY = "chave_super_secreta_da_dom_barbershop"
+ALGORITHM = "HS256"
 
-    print("🐘 Buscou do BANCO DE DADOS (PostgreSQL)!")
-    servicos_db = db.query(models.Servico).all()
-    servicos_lista = []
-    for servico in servicos_db:
-        servicos_lista.append({
-            "id": servico.id,
-            "nome": servico.nome,
-            "preco": float(servico.preco)
-        })
-    redis_client.setex("servicos_lista", 3600, json.dumps(servicos_lista))
-    
-    return servicos_db
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-@app.post("/servicos/", response_model=schemas.ServicoResponse)
-def criar_servico(servico: schemas.ServicoCreate, db: Session = Depends(database.get_db)):
-    novo_servico = models.Servico(nome=servico.nome, preco=servico.preco)
+def validar_token(token: str = Depends(oauth2_scheme)):
+    excecao_credenciais = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Sessão inválida ou expirada. Faça login novamente.",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise excecao_credenciais
+        return email 
+    except jwt.PyJWTError:
+        raise excecao_credenciais
+
+@app.get("/servicos/", response_model=list[schemas.ServicoResponse])
+def read_servicos(skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db)):
+    return db.query(models.Servico).offset(skip).limit(limit).all()
+
+@app.post("/servicos/", response_model=schemas.ServicoResponse, status_code=201)
+def create_servico(servico: schemas.ServicoCreate, db: Session = Depends(database.get_db), usuario_email: str = Depends(validar_token)):
+    novo_servico = models.Servico(**servico.dict())
     db.add(novo_servico)
     db.commit()
     db.refresh(novo_servico)
-
-    redis_client.delete("servicos_lista")
-    
     return novo_servico
 
-@app.put("/servicos/{servico_id}", response_model=schemas.ServicoResponse)
-def atualizar_servico(servico_id: int, servico_atualizado: schemas.ServicoCreate, db: Session = Depends(database.get_db)):
-    servico_db = db.query(models.Servico).filter(models.Servico.id == servico_id).first()
-    if not servico_db:
-        raise HTTPException(status_code=404, detail="Serviço não encontrado")
-    
-    servico_db.nome = servico_atualizado.nome
-    servico_db.preco = servico_atualizado.preco
+@app.delete("/servicos/{servico_id}", status_code=204)
+def delete_servico(servico_id: int, db: Session = Depends(database.get_db), usuario_email: str = Depends(validar_token)):
+    servico = db.query(models.Servico).filter(models.Servico.id == servico_id).first()
+    if not servico:
+        return JSONResponse(status_code=404, content={"detail": "Serviço não encontrado"})
+    db.delete(servico)
     db.commit()
-    db.refresh(servico_db)
-    redis_client.delete("servicos_lista")
-    
-    return servico_db
+    return None
 
-@app.delete("/servicos/{servico_id}")
-def deletar_servico(servico_id: int, db: Session = Depends(database.get_db)):
-    servico_db = db.query(models.Servico).filter(models.Servico.id == servico_id).first()
-    if not servico_db:
-        raise HTTPException(status_code=404, detail="Serviço não encontrado")
+@app.put("/servicos/{servico_id}", response_model=schemas.ServicoResponse)
+def update_servico(servico_id: int, servico_updated: schemas.ServicoCreate, db: Session = Depends(database.get_db), usuario_email: str = Depends(validar_token)):
+    servico = db.query(models.Servico).filter(models.Servico.id == servico_id).first()
+    if not servico:
+        return JSONResponse(status_code=404, content={"detail": "Serviço não encontrado"})
     
-    db.delete(servico_db)
+    for key, value in servico_updated.dict().items():
+        setattr(servico, key, value)
+    
     db.commit()
-    redis_client.delete("servicos_lista")
-    
-    return {"mensagem": "Serviço deletado com sucesso"}
+    db.refresh(servico)
+    return servico
