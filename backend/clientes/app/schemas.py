@@ -1,21 +1,18 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 
 class ClienteBase(BaseModel):
     nome: str
     email: str
-    telefone: str
-    senha: str
+    telefone: Optional[str] = None
 
 class ClienteCreate(ClienteBase):
     senha: str
-    pass
+    codigo_admin: Optional[str] = None 
 
-class ClienteResponse(BaseModel):
+class ClienteResponse(ClienteBase):
     id: int
-    nome: str
-    email: str
-    telefone: str | None = None
-    
+    is_admin: bool 
+
     class Config:
         orm_mode = True

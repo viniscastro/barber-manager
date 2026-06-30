@@ -17,6 +17,7 @@ function fazerLogout() {
     localStorage.removeItem('access_token');
     localStorage.removeItem('usuario_id');
     localStorage.removeItem('usuario_nome');
+    localStorage.removeItem('is_admin');
     window.location.href = 'login.html';
 }
 
@@ -49,10 +50,16 @@ function mostrarNotificacao(mensagem, tipo = 'sucesso') {
     let toast = document.getElementById('custom-toast') || Object.assign(document.createElement('div'), { id: 'custom-toast' });
     if (!toast.parentNode) document.body.appendChild(toast);
     clearTimeout(toast.hideTimeout);
-    toast.className = `toast-notification ${tipo === 'erro' ? 'error' : ''}`;
+
+    toast.className = `toast-notification ${tipo === 'erro' ? 'error' : ''} ${tipo === 'lembrete' ? 'lembrete-toast' : ''}`;
     toast.innerHTML = `<div class="toast-message">${mensagem}</div><button class="toast-close" onclick="fecharNotificacao()" title="Fechar">&times;</button>`;
     setTimeout(() => toast.classList.add('show'), 10);
-    toast.hideTimeout = setTimeout(() => toast.classList.remove('show'), tipo === 'erro' ? 8000 : 3000);
+    
+    let tempoExibicao = 3000;
+    if (tipo === 'erro') tempoExibicao = 8000;
+    if (tipo === 'lembrete') tempoExibicao = 15000;
+    
+    toast.hideTimeout = setTimeout(() => toast.classList.remove('show'), tempoExibicao);
 }
 
 function gerarLinkWhatsApp(telefone, mensagem) {
@@ -70,13 +77,13 @@ function formatarZapTabela(numero) {
     return numero;
 }
 
-const API_AGENDA = "http://localhost:8002/agendamentos/";
-const API_CLIENTES = "http://localhost:8001/clientes/";
-const API_SERVICOS = "http://localhost:8000/servicos/";
+const API_AGENDA = "http://127.0.0.1:8002/agendamentos/";
+const API_CLIENTES = "http://127.0.0.1:8001/clientes/";
+const API_SERVICOS = "http://127.0.0.1:8000/servicos/";
 
 const parseStatus = (st) => {
-    const parts = (st || 'pendente|Cassiano').split('|');
-    return { status: parts[0].toLowerCase(), prof: parts[1] || 'Cassiano' };
+    const parts = (st || 'pendente|Equipe').split('|');
+    return { status: parts[0].toLowerCase(), prof: parts[1] || 'Equipe' };
 };
 
 const fetchWithFallback = async (url, options = {}) => {
@@ -103,7 +110,11 @@ const fetchWithFallback = async (url, options = {}) => {
 };
 
 const fetchAllData = async () => {
-    const [agRes, cliRes, servRes] = await Promise.all([fetch(API_AGENDA, {cache:'no-store'}), fetch(API_CLIENTES, {cache:'no-store'}), fetch(API_SERVICOS, {cache:'no-store'})]);
+    const [agRes, cliRes, servRes] = await Promise.all([
+        fetchWithFallback(API_AGENDA, {cache:'no-store'}), 
+        fetchWithFallback(API_CLIENTES, {cache:'no-store'}), 
+        fetchWithFallback(API_SERVICOS, {cache:'no-store'})
+    ]);
     return { agendamentos: await agRes.json(), clientes: await cliRes.json(), servicos: await servRes.json() };
 };
 
@@ -160,7 +171,7 @@ if (document.getElementById('tabela-agenda-body')) {
     
     window.alterarStatusAgendamento = async (id, novoStatus) => {
         try {
-            const ag = await (await fetch(`${API_AGENDA}${id}/`, { cache: 'no-store' })).json();
+            const ag = await (await fetchWithFallback(`${API_AGENDA}${id}/`, { cache: 'no-store' })).json();
             await fetchWithFallback(`${API_AGENDA}${id}/`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...ag, status: `${novoStatus}|${parseStatus(ag.status).prof}` }) });
             mostrarNotificacao(`Status alterado com sucesso!`); carregarAgendamentos();
             if (typeof carregarClientes === 'function') carregarClientes();
@@ -212,7 +223,7 @@ if (document.getElementById('tabela-clientes-body')) {
         if (!clientes.length) return tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Nenhum cliente.</td></tr>';
         
         tbody.innerHTML = clientes.sort((a,b) => (b.cortes_total||0) - (a.cortes_total||0)).map(c => {
-            const msg = c.proximo_horario ? `Olá, tudo bem, ${c.nome}? Hoje às ${c.proximo_horario} você tem um corte com o barbeiro ${c.profissionalResp||'nossa equipe'}! Até logo!` : `Olá ${c.nome}, tudo bem? Aqui é da Dom Barbershop!`;
+            const msg = c.proximo_horario ? `Olá, tudo bem, ${c.nome}? Hoje às ${c.proximo_horario} tem um corte com o barbeiro ${c.profissionalResp||'nossa equipa'}! Até logo!` : `Olá ${c.nome}, tudo bem? Aqui é da Dom Barbershop!`;
 
             const telefoneVisual = formatarZapTabela(c.telefone);
             
@@ -223,7 +234,7 @@ if (document.getElementById('tabela-clientes-body')) {
                                 </a>`;
             }
 
-            return `<tr><td class="font-bold">${c.nome}</td><td>${linkWhatsApp}</td><td>${c.ultima_visita}</td><td><div class="flex-between-center"><span><strong class="text-primary">${c.cortes_total}</strong> cortes</span><button onclick="abrirPerfilCliente(${c.id})" class="btn-perfil">Gerenciar</button></div></td></tr>`;
+            return `<tr><td class="font-bold">${c.nome}</td><td>${linkWhatsApp}</td><td>${c.ultima_visita}</td><td><div class="flex-between-center"><span><strong class="text-primary">${c.cortes_total}</strong> cortes</span><button onclick="abrirPerfilCliente(${c.id})" class="btn-perfil">Gerir</button></div></td></tr>`;
         }).join('');
     };
 
@@ -236,7 +247,7 @@ if (document.getElementById('tabela-clientes-body')) {
         clienteAtivoId = id; document.getElementById('perfil-nome-cliente').innerText = c.nome; document.getElementById('perfil-telefone').innerText = formatarZapTabela(c.telefone); document.getElementById('perfil-visita').innerText = c.ultima_visita; document.getElementById('perfil-cortes').innerText = c.cortes_total; document.getElementById('btn-resgatar-premio').style.display = c.cortes_total >= 10 ? 'block' : 'none';
         const divAg = document.getElementById('status-agendamento-cliente'); divAg.style.display = 'none';
         try {
-            const ags = await (await fetch(API_AGENDA, {cache:'no-store'})).json();
+            const ags = await (await fetchWithFallback(API_AGENDA, {cache:'no-store'})).json();
             const pendentes = ags.filter(a => a.cliente_id == id && parseStatus(a.status).status === 'pendente').sort((a,b) => a.data_hora.localeCompare(b.data_hora));
             if (pendentes[0]?.data_hora) {
                 divAg.style.display = 'block'; const [ano, mes, dia] = pendentes[0].data_hora.split('T')[0].split('-');
@@ -250,7 +261,7 @@ if (document.getElementById('tabela-clientes-body')) {
     window.fecharPerfilCliente = () => { document.getElementById('modal-perfil-cliente').classList.remove('active'); clienteAtivoId = null; };
     window.resolverAgendamentoCliente = async (agId, status, cliId) => {
         try {
-            const ag = (await (await fetch(API_AGENDA, {cache:'no-store'})).json()).find(a => a.id == agId); if (!ag) throw new Error("Não encontrado.");
+            const ag = (await (await fetchWithFallback(API_AGENDA, {cache:'no-store'})).json()).find(a => a.id == agId); if (!ag) throw new Error("Não encontrado.");
             await fetchWithFallback(`${API_AGENDA}${agId}/`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...ag, status: `${status}|${parseStatus(ag.status).prof}`}) });
             if (status.toLowerCase() === 'concluido') {
                 const cli = listaDeClientes.find(c => c.id == cliId);
@@ -263,11 +274,11 @@ if (document.getElementById('tabela-clientes-body')) {
     window.zerarCortes = async () => {
         if (!clienteAtivoId) return;
         try {
-            const ags = await (await fetch(API_AGENDA, {cache:'no-store'})).json();
+            const ags = await (await fetchWithFallback(API_AGENDA, {cache:'no-store'})).json();
             for (let ag of ags.filter(a => a.cliente_id == clienteAtivoId && parseStatus(a.status).status === 'concluido')) {
                 await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({...ag, status: `Resgatado|${parseStatus(ag.status).prof}`}) });
             }
-            mostrarNotificacao("Prêmio resgatado! Contagem zerada. 🎁"); carregarClientes(); fecharPerfilCliente();
+            mostrarNotificacao("Prêmio resgatado! Contagem zerada."); carregarClientes(); fecharPerfilCliente();
             if(typeof atualizarDashboardCards === 'function') atualizarDashboardCards();
         } catch (e) { mostrarNotificacao("Erro ao resgatar.", "erro"); }
     };
@@ -276,8 +287,8 @@ if (document.getElementById('tabela-clientes-body')) {
     window.confirmarExclusaoCliente = async () => {
         if (!clienteAtivoId) return;
         try {
-            const ags = await (await fetch(API_AGENDA, {cache:'no-store'})).json();
-            for (let ag of ags.filter(a => a.cliente_id == clienteAtivoId)) await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method: 'DELETE' });
+            const ags = await (await fetchWithFallback(API_AGENDA, {cache:'no-store'})).json();
+            for (let ag of ags.filter(a => a.cliente_id == clienteAtivoId)) await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method:'DELETE' });
             await fetchWithFallback(`${API_CLIENTES}${clienteAtivoId}/`, { method: 'DELETE' });
             mostrarNotificacao("Cliente apagado.", "erro"); 
             carregarClientes(); fecharPerfilCliente(); fecharModalExclusaoCliente();
@@ -291,7 +302,7 @@ if (document.getElementById('grid-servicos-container')) {
     window.carregarServicos = async () => {
         const grid = document.getElementById('grid-servicos-container');
         try {
-            const servicos = await (await fetch(API_SERVICOS, {cache:'no-store'})).json();
+            const servicos = await (await fetchWithFallback(API_SERVICOS, {cache:'no-store'})).json();
             if (!servicos.length) return grid.innerHTML = "<p class='text-muted text-center empty-service'>Nenhum serviço.</p>";
             grid.innerHTML = servicos.map(s => `<div class="card-servico"><strong class="service-name">${s.nome}</strong><span class="text-primary font-bold text-large">R$ ${s.preco.toFixed(2).replace('.', ',')}</span><div class="card-actions"><button onclick="abrirModalEditar('${s.id}', '${s.nome}', ${s.preco})" class="btn-editar-servico">Editar</button><button onclick="prepararRemoverServico('${s.id}')" class="btn-remover-servico">Remover</button></div></div>`).join('');
             if(typeof atualizarSelectDashboard === 'function') atualizarSelectDashboard();
@@ -309,7 +320,7 @@ if (document.getElementById('grid-servicos-container')) {
             const nome = document.getElementById('input-nome-servico').value.trim(), preco = parseFloat(document.getElementById('input-preco-servico').value.replace(',','.'));
             if (!nome || isNaN(preco)) return mostrarNotificacao("Dados inválidos.", "erro");
             try {
-                const dup = (await (await fetch(API_SERVICOS, {cache:'no-store'})).json()).find(s => s.nome.toLowerCase() === nome.toLowerCase());
+                const dup = (await (await fetchWithFallback(API_SERVICOS, {cache:'no-store'})).json()).find(s => s.nome.toLowerCase() === nome.toLowerCase());
                 if (dup && !servicoEditandoId) return mostrarNotificacao(`O serviço "${nome}" já existe!`, "erro");
                 await fetchWithFallback(servicoEditandoId ? `${API_SERVICOS}${servicoEditandoId}/` : API_SERVICOS, { method: servicoEditandoId ? "PUT" : "POST", headers: {'Content-Type':'application/json'}, body: JSON.stringify({nome, preco, descricao:"-"}) });
                 mostrarNotificacao(servicoEditandoId ? "Atualizado!" : "Criado!"); carregarServicos(); fModalServ();
@@ -325,7 +336,7 @@ if (document.getElementById('grid-servicos-container')) {
         document.getElementById('btn-confirmar-exclusao').addEventListener('click', async () => {
             if (!idParaRemover) return;
             try {
-                for (let ag of (await (await fetch(API_AGENDA, {cache:'no-store'})).json()).filter(a => a.servico_id == idParaRemover)) await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method:'DELETE' });
+                for (let ag of (await (await fetchWithFallback(API_AGENDA, {cache:'no-store'})).json()).filter(a => a.servico_id == idParaRemover)) await fetchWithFallback(`${API_AGENDA}${ag.id}/`, { method:'DELETE' });
                 await fetchWithFallback(`${API_SERVICOS}${idParaRemover}/`, { method:'DELETE' });
                 mostrarNotificacao("Removido!"); carregarServicos(); fModalConf();
             } catch (e) { mostrarNotificacao("Erro.", "erro"); }
@@ -337,7 +348,7 @@ if (document.getElementById('grid-servicos-container')) {
 // Dashboard e lembretes
 window.atualizarSelectDashboard = async () => {
     const sel = document.getElementById('servico'); if (!sel) return;
-    try { sel.innerHTML = '<option value="" disabled selected>Escolha o serviço...</option>' + (await (await fetch(API_SERVICOS, {cache:'no-store'})).json()).map(s => `<option value="${s.nome}">${s.nome} (R$ ${s.preco.toFixed(2).replace('.',',')})</option>`).join(''); } catch (e) { sel.innerHTML = '<option disabled>Erro</option>'; }
+    try { sel.innerHTML = '<option value="" disabled selected>Escolha o serviço...</option>' + (await (await fetchWithFallback(API_SERVICOS, {cache:'no-store'})).json()).map(s => `<option value="${s.nome}">${s.nome} (R$ ${s.preco.toFixed(2).replace('.',',')})</option>`).join(''); } catch (e) { sel.innerHTML = '<option disabled>Erro</option>'; }
 };
 
 window.atualizarDashboardCards = async () => {
@@ -357,11 +368,18 @@ window.atualizarDashboardCards = async () => {
 
 const lembretesEnviados = new Set();
 const verificarLembretes = async () => {
+    if (localStorage.getItem('is_admin') !== 'true') return; 
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+
     try {
-        const [ags, clis] = await Promise.all([ 
-            (await fetch(API_AGENDA,{cache:'no-store'})).json(), 
-            (await fetch(API_CLIENTES,{cache:'no-store'})).json() 
-        ]);
+        const resAgendamentos = await fetch(API_AGENDA, { method: 'GET', headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
+        const resClientes = await fetch(API_CLIENTES, { method: 'GET', headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
+
+        if (!resAgendamentos.ok || !resClientes.ok) return;
+
+        const ags = await resAgendamentos.json();
+        const clis = await resClientes.json();
         const agora = new Date();
         
         ags.forEach(ag => {
@@ -375,10 +393,19 @@ const verificarLembretes = async () => {
                 const cli = clis.find(c => c.id == ag.cliente_id) || { nome:'Cliente', telefone:'' };
                 const hr = dAg.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
                 
-                const msg = `Olá, tudo bem, ${cli.nome}? Hoje às ${hr} você tem um corte com o barbeiro ${prof}! Até logo!`;
+                const msg = `Olá, tudo bem, ${cli.nome}? Hoje às ${hr} tem um corte com o barbeiro ${prof}! Até logo!`;
                 const linkWhatsApp = gerarLinkWhatsApp(cli.telefone, msg);
                 
-                window.open(linkWhatsApp, '_blank');
+                const htmlLembrete = `
+                    <div style="text-align: center;">
+                        <strong style="color: #cfaa5e; font-size: 1.1rem;">Lembrete de Agendamento</strong><br>
+                        <span style="display: block; margin: 8px 0;">O cliente <strong>${cli.nome}</strong> está agendado para as <strong>${hr}</strong>.</span>
+                        <a href="${linkWhatsApp}" target="_blank" onclick="fecharNotificacao()" style="display: inline-block; background-color: #25D366; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 5px; border: 1px solid #1da851;">
+                            <span style="font-size: 1.1rem; vertical-align: middle;"></span> Enviar WhatsApp
+                        </a>
+                    </div>
+                `;
+                mostrarNotificacao(htmlLembrete, 'lembrete');
                 lembretesEnviados.add(ag.id);
             }
         });
@@ -389,20 +416,10 @@ const verificarLembretes = async () => {
 
 document.addEventListener("DOMContentLoaded", () => {
     verificarLembretes();
-
     setInterval(verificarLembretes, 60000); 
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById('servico')) {
-        if (typeof atualizarSelectDashboard === 'function') {
-            atualizarSelectDashboard();
-        }
-    }
-    
-    if (document.querySelector('.dashboard-cards')) {
-        if (typeof atualizarDashboardCards === 'function') {
-            atualizarDashboardCards();
-        }
-    }
+    if (document.getElementById('servico')) { if (typeof atualizarSelectDashboard === 'function') atualizarSelectDashboard(); }
+    if (document.querySelector('.dashboard-cards')) { if (typeof atualizarDashboardCards === 'function') atualizarDashboardCards(); }
 });

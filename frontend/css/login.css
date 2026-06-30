@@ -232,3 +232,29 @@ body::after {
     body::after { width: 100%; background: rgba(18, 18, 18, 0.85); }
     .login-container { margin-right: 0; padding: 30px; }
 }
+
+.admin-checkbox-group {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-checkbox-group input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.admin-checkbox-group label {
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 0;
+}
+
+#div-codigo-admin {
+    display: none; 
+    margin-bottom: 15px;
+}

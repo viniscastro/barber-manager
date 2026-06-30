@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dom Barbershop | Área do Cliente</title>
+    <link rel="icon" type="image/png" href="icon.png?v=2" sizes="32x32">
+    
+    <link rel="stylesheet" href="css/style.css"> 
+    <link rel="stylesheet" href="css/cliente.css"> 
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo-area">
+            <img src="logo_barber.png" alt="Dom Barbershop" height="40">
+        </div>
+        <div class="user-area">
+            <span>Olá, <strong id="nome-usuario-logado">Cliente</strong></span>
+            <button onclick="fazerLogout()" class="btn-logout">Sair</button>
+        </div>
+    </header>
+
+    <div class="cliente-container">
+        
+        <div class="card-agendamento">
+            <h3>💈 Agendar Novo Serviço</h3>
+            
+            <div class="form-row">
+                <div>
+                    <label for="cliente-servico">Escolha o Serviço</label>
+                    <select id="cliente-servico">
+                        <option value="">Carregando serviços...</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="cliente-barbeiro">Escolha o Profissional</label>
+                    <select id="cliente-barbeiro">
+                        <option value="">Carregando barbeiros...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label for="cliente-data">Data</label>
+                    <input type="date" id="cliente-data">
+                </div>
+                <div>
+                    <label for="cliente-hora">Horário</label>
+                    <input type="time" id="cliente-hora">
+                </div>
+            </div>
+            
+            <button class="btn-agendar" onclick="solicitarAgendamento()">Confirmar Agendamento</button>
+            <div id="msg-agendamento" style="margin-top: 15px; text-align: center;"></div>
+        </div>
+
+        <div class="card-agendamento">
+            <h3>Minha Agenda</h3>
+            <table class="tabela-cliente">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Horário</th>
+                        <th>Serviço</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-meus-agendamentos">
+                    <tr>
+                        <td colspan="4" style="text-align: center; color: #666;">Nenhum agendamento encontrado.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/cliente.js"></script>
+</body>
+</html>

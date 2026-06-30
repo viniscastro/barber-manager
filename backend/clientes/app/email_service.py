@@ -1,8 +1,8 @@
 import smtplib
 from email.message import EmailMessage
 
-EMAIL_REMETENTE = "seuemail@email.com"
-SENHA_APP = "sua-senha-de-app"
+EMAIL_REMETENTE = "vinislad17@gmail.com"
+SENHA_APP = "hfodfpethcbcqevc"
 
 def enviar_email_codigo_registro(email_destino, codigo_verificacao):
     msg = EmailMessage()

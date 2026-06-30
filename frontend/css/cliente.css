@@ -1,0 +1,237 @@
+.cliente-container { 
+    max-width: 800px; 
+    margin: 40px auto; 
+    padding: 20px; 
+}
+
+.card-agendamento { 
+    background: #1a1a1a; 
+    border: 1px solid #cfaa5e; 
+    padding: 25px; 
+    border-radius: 8px; 
+    margin-bottom: 30px; 
+}
+
+.card-agendamento h3 { 
+    color: #cfaa5e; 
+    margin-top: 0; 
+}
+
+.form-row { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 15px; 
+    flex-wrap: wrap; 
+}
+
+.form-row > div { 
+    flex: 1; 
+    min-width: 200px; 
+}
+
+.form-row label { 
+    display: block; 
+    margin-bottom: 5px; 
+    color: #ccc; 
+}
+
+.form-row input, 
+.form-row select { 
+    width: 100%; 
+    padding: 10px; 
+    border-radius: 4px; 
+    border: 1px solid #333; 
+    background: #222; 
+    color: #fff; 
+}
+
+.btn-agendar { 
+    background: #cfaa5e; 
+    color: #000; 
+    padding: 12px 20px; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    width: 100%; 
+    margin-top: 10px; 
+    transition: background 0.3s;
+}
+
+.btn-agendar:hover { 
+    background: #b8954d; 
+}
+
+.tabela-cliente { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 15px; 
+}
+
+.tabela-cliente th, 
+.tabela-cliente td { 
+    padding: 12px; 
+    text-align: left; 
+    border-bottom: 1px solid #333; 
+}
+
+.tabela-cliente th { 
+    color: #cfaa5e; 
+}
+
+.status-badge { 
+    background: #333; 
+    padding: 4px 8px; 
+    border-radius: 4px; 
+    font-size: 0.85em; 
+}
+
+body {
+    display: block !important;
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    font-family: Arial, sans-serif;
+}
+
+.navbar {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background-color: #1a1a1a;
+    border-bottom: 2px solid #cfaa5e;
+}
+
+.logo-area img {
+    height: 70px;
+    width: auto;
+    object-fit: contain;
+}
+
+.user-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.user-area strong {
+    color: #cfaa5e;
+}
+
+.btn-logout {
+    background: transparent;
+    color: #ff4444;
+    border: 1px solid #ff4444;
+    padding: 8px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-logout:hover {
+    background: #ff4444;
+    color: #fff;
+}
+
+.cliente-container {
+    max-width: 750px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.card-agendamento { 
+    background: #1a1a1a; 
+    border: 1px solid #cfaa5e; 
+    padding: 30px; 
+    border-radius: 8px; 
+    margin-bottom: 30px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.card-agendamento h3 { 
+    color: #cfaa5e; 
+    margin-top: 0; 
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+}
+
+.form-row { 
+    display: flex; 
+    gap: 15px; 
+    margin-bottom: 20px; 
+    flex-wrap: wrap; 
+}
+
+.form-row > div { 
+    flex: 1; 
+    min-width: 200px; 
+}
+
+.form-row label { 
+    display: block; 
+    margin-bottom: 8px; 
+    color: #ccc; 
+    font-weight: bold;
+}
+
+.form-row input, 
+.form-row select { 
+    width: 100%; 
+    padding: 12px; 
+    box-sizing: border-box; 
+    border-radius: 4px; 
+    border: 1px solid #444; 
+    background: #222; 
+    color: #fff; 
+    font-size: 1rem;
+}
+
+.btn-agendar { 
+    background: #cfaa5e; 
+    color: #000; 
+    padding: 14px 20px; 
+    border: none; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    font-size: 1.1rem;
+    width: 100%; 
+    margin-top: 10px; 
+    transition: background 0.3s;
+}
+
+.btn-agendar:hover { 
+    background: #b8954d; 
+}
+
+.tabela-cliente { 
+    width: 100%; 
+    border-collapse: collapse; 
+}
+
+.tabela-cliente th, 
+.tabela-cliente td { 
+    padding: 15px 10px; 
+    text-align: left; 
+    border-bottom: 1px solid #333; 
+    color: #eee;
+}
+
+.tabela-cliente th { 
+    color: #cfaa5e; 
+    font-size: 1.1rem;
+}
+
+.status-badge { 
+    background: #333; 
+    padding: 6px 12px; 
+    border-radius: 4px; 
+    font-size: 0.9em; 
+    font-weight: bold;
+}

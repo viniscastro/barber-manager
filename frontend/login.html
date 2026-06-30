@@ -64,7 +64,16 @@
                 <label for="reg-senha-confirm">Confirmar Senha</label>
                 <input type="password" id="reg-senha-confirm" placeholder="Repita a senha">
             </div>
-            
+
+            <div class="admin-checkbox-group">
+                <input type="checkbox" id="check-funcionario" onchange="toggleCodigoAdmin()">
+                <label for="check-funcionario">Sou funcionário da barbearia</label>
+            </div>
+
+            <div class="input-group" id="div-codigo-admin">
+                <label for="codigo-admin">Código de Acesso Especial</label>
+                <input type="password" id="codigo-admin" placeholder="Digite o código da gerência">
+            </div>
             <button class="btn-submit" onclick="fazerCadastro()">Registar</button>
             
             <div id="msg-register" class="message-alert"></div>

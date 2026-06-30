@@ -49,7 +49,13 @@ async function fazerLogin() {
             localStorage.setItem('access_token', dados.access_token);
             localStorage.setItem('usuario_id', dados.usuario.id);
             localStorage.setItem('usuario_nome', dados.usuario.nome);
-            window.location.href = 'dashboard.html';
+            localStorage.setItem('is_admin', dados.usuario.is_admin);
+            
+            if (dados.usuario.is_admin === true) {
+                window.location.href = 'dashboard.html';
+            } else {
+                window.location.href = 'painel_cliente.html';
+            }
         } else {
             exibirMensagem('msg-login', dados.detail || 'Erro ao fazer login.', 'error');
         }
@@ -67,6 +73,8 @@ async function fazerCadastro() {
     const senha = document.getElementById('reg-senha').value.trim();
     const senhaConfirm = document.getElementById('reg-senha-confirm').value.trim();
     const telefoneLimpo = telefoneRaw.replace(/\D/g, '');
+    
+    const codigoSecreto = document.getElementById('codigo-admin') ? document.getElementById('codigo-admin').value.trim() : "";
 
     if (primeiroNome === '' || sobrenome === '' || email === '' || senha === '' || senhaConfirm === '') {
         return exibirMensagem('msg-register', 'Preencha todos os campos.', 'error');
@@ -81,8 +89,14 @@ async function fazerCadastro() {
 
     emailEmProcesso = email;
     const nomeCompleto = primeiroNome + ' ' + sobrenome;
-    
-    dadosCadastro = { nome: nomeCompleto, email: email, senha: senha, telefone: telefoneLimpo }; 
+
+    dadosCadastro = { 
+        nome: nomeCompleto, 
+        email: email, 
+        senha: senha, 
+        telefone: telefoneLimpo,
+        codigo_admin: codigoSecreto
+    }; 
     
     exibirMensagem('msg-register', 'A preparar o seu registo...', 'success');
 
@@ -125,8 +139,13 @@ async function verificarCodigoRegistro() {
             });
 
             if (respostaDb.ok) {
-                exibirMensagem('msg-verify-reg', 'Conta criada com sucesso! Redirecionando...', 'success');
-                setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                exibirMensagem('msg-verify-reg', 'Conta criada com sucesso! Redirecionando para login...', 'success');
+                setTimeout(() => { 
+                    alternarTela('form-login');
+                    document.getElementById('login-email').value = emailEmProcesso;
+                    document.getElementById('login-senha').value = '';
+                    exibirMensagem('msg-login', 'Faça o login para aceder à sua conta.', 'success');
+                }, 2000);
             } else {
                 const erroDb = await respostaDb.json();
                 exibirMensagem('msg-verify-reg', erroDb.detail || 'Erro ao gravar no banco de dados.', 'error');
@@ -213,3 +232,16 @@ document.addEventListener('keypress', function(e) {
         }
     }
 });
+
+function toggleCodigoAdmin() {
+    const checkbox = document.getElementById('check-funcionario');
+    const divCodigo = document.getElementById('div-codigo-admin');
+    const inputCodigo = document.getElementById('codigo-admin');
+
+    if (checkbox.checked) {
+        divCodigo.style.display = 'block';
+    } else {
+        divCodigo.style.display = 'none';
+        inputCodigo.value = ''; 
+    }
+}

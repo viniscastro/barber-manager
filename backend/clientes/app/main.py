@@ -88,7 +88,12 @@ def rota_login(request: LoginRequest, db: Session = Depends(database.get_db)):
     return {
         "access_token": access_token, 
         "token_type": "bearer",
-        "usuario": {"id": db_cliente.id, "nome": db_cliente.nome, "email": db_cliente.email}
+        "usuario": {
+            "id": db_cliente.id, 
+            "nome": db_cliente.nome, 
+            "email": db_cliente.email,
+            "is_admin": db_cliente.is_admin
+        }
     }
 
 @app.post("/enviar-codigo-registro/")
@@ -113,6 +118,9 @@ def verificar_codigo(request: ValidarCodigoRequest):
         return {"mensagem": "Código validado com sucesso!"}
     return JSONResponse(status_code=400, content={"detail": "Código incorreto ou expirado."})
 
+# CÓDIGO SECRETO DA GERÊNCIA (Pode mudar para o que quiser)
+CODIGO_MESTRE = "DOM2026ADMIN"
+
 @app.post("/clientes/", response_model=schemas.ClienteResponse, status_code=201)
 def create_cliente(cliente: schemas.ClienteCreate, db: Session = Depends(database.get_db)):
     db_cliente = db.query(models.Cliente).filter(models.Cliente.email == cliente.email).first()
@@ -120,6 +128,14 @@ def create_cliente(cliente: schemas.ClienteCreate, db: Session = Depends(databas
         return JSONResponse(status_code=400, content={"detail": "Email já cadastrado no banco."})
     
     cliente_dados = cliente.dict()
+
+    codigo_recebido = cliente_dados.pop("codigo_admin", None)
+    
+    if codigo_recebido == CODIGO_MESTRE:
+        cliente_dados["is_admin"] = True
+    else:
+        cliente_dados["is_admin"] = False
+        
     cliente_dados["senha"] = get_password_hash(cliente_dados["senha"]) 
     
     novo_cliente = models.Cliente(**cliente_dados)
