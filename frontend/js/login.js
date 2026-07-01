@@ -37,7 +37,7 @@ async function fazerLogin() {
     }
 
     try {
-        const resposta = await fetch('http://127.0.0.1:8001/login/', {
+        const resposta = await fetch('http://35.175.111.22:8001', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email, senha: senha })
@@ -101,7 +101,7 @@ async function fazerCadastro() {
     exibirMensagem('msg-register', 'A preparar o seu registo...', 'success');
 
     try {
-        const resposta = await fetch('http://127.0.0.1:8001/enviar-codigo-registro/', {
+        const resposta = await fetch('http://35.175.111.22:8001/enviar-codigo-registro/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email })
@@ -123,7 +123,7 @@ async function verificarCodigoRegistro() {
 
     exibirMensagem('msg-verify-reg', 'A validar...', 'success');
     try {
-        const resposta = await fetch('http://127.0.0.1:8001/verificar-codigo/', {
+        const resposta = await fetch('http://35.175.111.22:8001/verificar-codigo/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: emailEmProcesso, codigo: codigo })
@@ -132,7 +132,7 @@ async function verificarCodigoRegistro() {
         if (resposta.ok) {
             exibirMensagem('msg-verify-reg', 'Código validado! A criar a sua conta...', 'success');
             
-            const respostaDb = await fetch('http://127.0.0.1:8001/clientes/', {
+            const respostaDb = await fetch('http://35.175.111.22:8001/clientes/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dadosCadastro)
@@ -167,7 +167,7 @@ async function recuperarSenha() {
     exibirMensagem('msg-forgot', 'A comunicar com o servidor...', 'success');
 
     try {
-        const resposta = await fetch('http://127.0.0.1:8001/recuperar-senha/', {
+        const resposta = await fetch('http://35.175.111.22:8001/recuperar-senha/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email })
@@ -189,7 +189,7 @@ async function verificarCodigoRecuperacao() {
 
     exibirMensagem('msg-verify-forgot', 'A validar código...', 'success');
     try {
-        const resposta = await fetch('http://127.0.0.1:8001/verificar-codigo/', {
+        const resposta = await fetch('http://35.175.111.22:8001/verificar-codigo/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: emailEmProcesso, codigo: codigo })

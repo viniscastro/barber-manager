@@ -1,7 +1,7 @@
 const API_BASE = {
-    servicos: "http://localhost:8000/servicos/",
-    clientes: "http://localhost:8001/clientes/",
-    agendamentos: "http://localhost:8002/agendamentos/"
+    servicos: "http://35.175.111.22:8000/servicos/",
+    clientes: "http://35.175.111.22:8001/clientes/",
+    agendamentos: "http://35.175.111.22:8002/agendamentos/"
 };
 
 const API = {
