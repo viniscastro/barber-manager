@@ -1,3 +1,7 @@
+// Configuração das rotas relativas para o Nginx (API Gateway)
+const API_CLIENTES = '/api/clientes/';
+
+// --- Funções de Máscara e Utilitários ---
 document.addEventListener("DOMContentLoaded", () => {
     const inputTelefoneReg = document.getElementById('reg-telefone');
     if (inputTelefoneReg) {
@@ -7,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (valor.length > 2) valor = `(${valor.substring(0, 2)}) ${valor.substring(2)}`;
             if (valor.length > 10) valor = `${valor.substring(0, 10)}-${valor.substring(10)}`;
             else if (valor.length > 9) valor = `${valor.substring(0, 9)}-${valor.substring(9)}`;
-            
             e.target.value = valor;
         });
     }
@@ -25,24 +28,24 @@ function exibirMensagem(elementoId, texto, tipo) {
     if (msgBox) { msgBox.innerHTML = texto; msgBox.className = `message-alert ${tipo}`; }
 }
 
+// Variáveis globais para cadastro/recuperação
 let emailEmProcesso = ""; 
-let dadosCadastro = {}; 
+let dadosCadastro = {};
 
+// --- Lógica de Login ---
 async function fazerLogin() {
     const email = document.getElementById('login-email').value.trim();
     const senha = document.getElementById('login-senha').value.trim();
-
     if (!email || !senha) {
-        return exibirMensagem('msg-login', 'Preencha todos os campos.', 'error'); 
+        return exibirMensagem('msg-login', 'Preencha todos os campos.', 'error');
     }
 
     try {
-        const resposta = await fetch('/api/clientes/login/', {
+        const resposta = await fetch(`${API_CLIENTES}login/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email, senha: senha })
         });
-
         const dados = await resposta.json();
 
         if (resposta.ok) {
@@ -65,6 +68,7 @@ async function fazerLogin() {
     }
 }
 
+// --- Lógica de Cadastro ---
 async function fazerCadastro() {
     const primeiroNome = document.getElementById('reg-nome').value.trim();
     const sobrenome = document.getElementById('reg-sobrenome').value.trim();
@@ -73,35 +77,22 @@ async function fazerCadastro() {
     const senha = document.getElementById('reg-senha').value.trim();
     const senhaConfirm = document.getElementById('reg-senha-confirm').value.trim();
     const telefoneLimpo = telefoneRaw.replace(/\D/g, '');
-    
     const codigoSecreto = document.getElementById('codigo-admin') ? document.getElementById('codigo-admin').value.trim() : "";
 
     if (primeiroNome === '' || sobrenome === '' || email === '' || senha === '' || senhaConfirm === '') {
         return exibirMensagem('msg-register', 'Preencha todos os campos.', 'error');
     }
-    
-    if (telefoneLimpo.length < 10) {
-        return exibirMensagem('msg-register', 'Digite um telefone válido com DDD.', 'error');
-    }
-    
+    if (telefoneLimpo.length < 10) return exibirMensagem('msg-register', 'Digite um telefone válido com DDD.', 'error');
     if (senha.length < 8) return exibirMensagem('msg-register', 'A senha deve ter no mínimo 8 caracteres.', 'error');
     if (senha !== senhaConfirm) return exibirMensagem('msg-register', 'As senhas não coincidem!', 'error');
 
     emailEmProcesso = email;
-    const nomeCompleto = primeiroNome + ' ' + sobrenome;
+    dadosCadastro = { nome: `${primeiroNome} ${sobrenome}`, email: email, senha: senha, telefone: telefoneLimpo, codigo_admin: codigoSecreto };
 
-    dadosCadastro = { 
-        nome: nomeCompleto, 
-        email: email, 
-        senha: senha, 
-        telefone: telefoneLimpo,
-        codigo_admin: codigoSecreto
-    }; 
-    
     exibirMensagem('msg-register', 'A preparar o seu registo...', 'success');
 
     try {
-        const resposta = await fetch('http://35.175.111.22:8001/enviar-codigo-registro/', {
+        const resposta = await fetch(`${API_CLIENTES}enviar-codigo-registro/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email })
@@ -121,36 +112,26 @@ async function verificarCodigoRegistro() {
     const codigo = document.getElementById('verify-reg-code').value.trim();
     if (codigo.length < 6) return exibirMensagem('msg-verify-reg', 'Introduza os 6 dígitos.', 'error');
 
-    exibirMensagem('msg-verify-reg', 'A validar...', 'success');
     try {
-        const resposta = await fetch('http://35.175.111.22:8001/verificar-codigo/', {
+        const resposta = await fetch(`${API_CLIENTES}verificar-codigo/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: emailEmProcesso, codigo: codigo })
         });
-        
         if (resposta.ok) {
-            exibirMensagem('msg-verify-reg', 'Código validado! A criar a sua conta...', 'success');
-            
-            const respostaDb = await fetch('http://35.175.111.22:8001/clientes/', {
+            exibirMensagem('msg-verify-reg', 'Código validado! Criando conta...', 'success');
+            const respostaDb = await fetch(`${API_CLIENTES}clientes/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(dadosCadastro)
             });
-
             if (respostaDb.ok) {
-                exibirMensagem('msg-verify-reg', 'Conta criada com sucesso! Redirecionando para login...', 'success');
-                setTimeout(() => { 
-                    alternarTela('form-login');
-                    document.getElementById('login-email').value = emailEmProcesso;
-                    document.getElementById('login-senha').value = '';
-                    exibirMensagem('msg-login', 'Faça o login para aceder à sua conta.', 'success');
-                }, 2000);
+                exibirMensagem('msg-verify-reg', 'Conta criada! Redirecionando...', 'success');
+                setTimeout(() => { alternarTela('form-login'); }, 2000);
             } else {
                 const erroDb = await respostaDb.json();
-                exibirMensagem('msg-verify-reg', erroDb.detail || 'Erro ao gravar no banco de dados.', 'error');
+                exibirMensagem('msg-verify-reg', erroDb.detail || 'Erro ao gravar.', 'error');
             }
-
         } else {
             exibirMensagem('msg-verify-reg', 'Código incorreto ou expirado.', 'error');
         }
@@ -159,24 +140,23 @@ async function verificarCodigoRegistro() {
     }
 }
 
+// --- Lógica de Senha ---
 async function recuperarSenha() {
     const email = document.getElementById('forgot-email').value.trim();
     if (email === '') return exibirMensagem('msg-forgot', 'Insira o seu e-mail.', 'error');
-
     emailEmProcesso = email;
-    exibirMensagem('msg-forgot', 'A comunicar com o servidor...', 'success');
 
     try {
-        const resposta = await fetch('http://35.175.111.22:8001/recuperar-senha/', {
+        const resposta = await fetch(`${API_CLIENTES}recuperar-senha/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email })
         });
         if (resposta.ok) {
             alternarTela('form-verify-forgot');
-            exibirMensagem('msg-verify-forgot', 'Instruções enviadas para ' + email, 'success');
+            exibirMensagem('msg-verify-forgot', 'Instruções enviadas.', 'success');
         } else {
-            exibirMensagem('msg-forgot', 'Erro ao processar o pedido.', 'error');
+            exibirMensagem('msg-forgot', 'Erro ao processar.', 'error');
         }
     } catch (erro) {
         exibirMensagem('msg-forgot', 'Erro de conexão.', 'error');
@@ -187,18 +167,14 @@ async function verificarCodigoRecuperacao() {
     const codigo = document.getElementById('verify-forgot-code').value.trim();
     if (codigo.length < 6) return exibirMensagem('msg-verify-forgot', 'Introduza os 6 dígitos.', 'error');
 
-    exibirMensagem('msg-verify-forgot', 'A validar código...', 'success');
     try {
-        const resposta = await fetch('http://35.175.111.22:8001/verificar-codigo/', {
+        const resposta = await fetch(`${API_CLIENTES}verificar-codigo/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: emailEmProcesso, codigo: codigo })
         });
-        if (resposta.ok) {
-            alternarTela('form-reset-password');
-        } else {
-            exibirMensagem('msg-verify-forgot', 'Código incorreto ou expirado.', 'error');
-        }
+        if (resposta.ok) alternarTela('form-reset-password');
+        else exibirMensagem('msg-verify-forgot', 'Código incorreto ou expirado.', 'error');
     } catch (erro) {
         exibirMensagem('msg-verify-forgot', 'Erro de conexão.', 'error');
     }
@@ -207,19 +183,12 @@ async function verificarCodigoRecuperacao() {
 function redefinirSenha() {
     const senha = document.getElementById('reset-senha').value.trim();
     const senhaConfirm = document.getElementById('reset-senha-confirm').value.trim();
-
-    if (senha === '' || senhaConfirm === '') return exibirMensagem('msg-reset-password', 'Preencha todos os campos.', 'error');
-    if (senha.length < 8) return exibirMensagem('msg-reset-password', 'A senha deve ter no mínimo 8 caracteres.', 'error');
-    if (senha !== senhaConfirm) return exibirMensagem('msg-reset-password', 'As senhas não coincidem!', 'error');
-
-    exibirMensagem('msg-reset-password', 'Senha alterada com sucesso! Redirecionando...', 'success');
-    setTimeout(() => {
-        alternarTela('form-login');
-        document.getElementById('login-email').value = emailEmProcesso;
-        exibirMensagem('msg-login', 'Faça login com a sua nova senha.', 'success');
-    }, 2000);
+    if (senha !== senhaConfirm) return exibirMensagem('msg-reset-password', 'Senhas não coincidem!', 'error');
+    exibirMensagem('msg-reset-password', 'Senha alterada!', 'success');
+    setTimeout(() => { alternarTela('form-login'); }, 2000);
 }
 
+// --- Eventos ---
 document.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         const telas = {
@@ -236,12 +205,6 @@ document.addEventListener('keypress', function(e) {
 function toggleCodigoAdmin() {
     const checkbox = document.getElementById('check-funcionario');
     const divCodigo = document.getElementById('div-codigo-admin');
-    const inputCodigo = document.getElementById('codigo-admin');
-
-    if (checkbox.checked) {
-        divCodigo.style.display = 'block';
-    } else {
-        divCodigo.style.display = 'none';
-        inputCodigo.value = ''; 
-    }
+    divCodigo.style.display = checkbox.checked ? 'block' : 'none';
+    if(!checkbox.checked) document.getElementById('codigo-admin').value = '';
 }
