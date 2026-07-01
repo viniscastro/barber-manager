@@ -37,7 +37,7 @@ async function fazerLogin() {
     }
 
     try {
-        const resposta = await fetch('http://35.175.111.22:8001', {
+        const resposta = await fetch('/api/clientes/caminho_do_login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email, senha: senha })
