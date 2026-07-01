@@ -77,9 +77,9 @@ function formatarZapTabela(numero) {
     return numero;
 }
 
-const API_AGENDA = "http://127.0.0.1:8002/agendamentos/";
-const API_CLIENTES = "http://127.0.0.1:8001/clientes/";
-const API_SERVICOS = "http://127.0.0.1:8000/servicos/";
+const API_AGENDA = "/api/agendamentos/agendamentos/";
+const API_CLIENTES = "/api/clientes/clientes/";
+const API_SERVICOS = "/api/servicos/servicos/";
 
 const parseStatus = (st) => {
     const parts = (st || 'pendente|Equipe').split('|');

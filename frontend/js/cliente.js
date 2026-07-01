@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarMeusAgendamentos();
 });
 
-const URL_SERVICOS = 'http://127.0.0.1:8000/servicos/'; 
-const URL_AGENDAMENTOS = 'http://127.0.0.1:8002/agendamentos/';
+const URL_SERVICOS = "/api/servicos/servicos/"; 
+const URL_AGENDAMENTOS = "/api/agendamentos/agendamentos/";
 
 async function carregarServicos() {
     const selectServico = document.getElementById('cliente-servico');
