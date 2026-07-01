@@ -1,3 +1,8 @@
+// Rotas relativas passando pelo API Gateway (Nginx)
+const API_SERVICOS = '/api/servicos/servicos/';
+const API_CLIENTES = '/api/clientes/clientes/';
+const API_AGENDA = '/api/agendamentos/agendamentos/';
+
 document.addEventListener("DOMContentLoaded", function() {
     const usuarioLogado = localStorage.getItem('usuario_nome');
 
